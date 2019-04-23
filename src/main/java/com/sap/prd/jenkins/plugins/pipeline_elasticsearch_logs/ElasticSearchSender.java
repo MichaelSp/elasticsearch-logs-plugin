@@ -4,22 +4,28 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.annotation.CheckForNull;
+
+import org.apache.commons.lang.time.FastDateFormat;
 
 import hudson.console.ConsoleNote;
 import hudson.console.LineTransformationOutputStream;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 import hudson.model.Run;
 import net.sf.json.JSONObject;
 
 public class ElasticSearchSender implements BuildListener, Closeable
 {
-  private static final Logger LOGGER = Logger.getLogger(ElasticSearchSender.class.getName());
+  //private static final Logger LOGGER = Logger.getLogger(ElasticSearchSender.class.getName());
+
+  private static final FastDateFormat TIME_FORMATTER = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
   private static final long serialVersionUID = 1;
 
@@ -29,45 +35,27 @@ public class ElasticSearchSender implements BuildListener, Closeable
   protected final String nodeId;
   protected final String stepName;
   protected final String stageName;
+  protected final String agentName;
+  
+  protected transient ElasticSearchWriter writer;
+  protected final ElasticSearchSerializableConfiguration config;
   protected transient Run<?, ?> run;
 
-  protected ElasticSearchSender(String fullName, String buildId, String nodeId, String stepName, String stageName)
+  public ElasticSearchSender(String fullName, String buildId, String nodeId, String stepName, String stageName, String agentName,
+      ElasticSearchSerializableConfiguration config)
   {
     this.fullName = fullName;
     this.buildId = buildId;
     this.nodeId = nodeId;
     this.stepName = stepName;
     this.stageName = stageName;
+    this.agentName = agentName;
+    this.config = config;
   }
 
-  void setRun(Run<?, ?> run)
+  public void setRun(Run<?, ?> run)
   {
     this.run = run;
-  }
-
-  static final class MasterSender extends ElasticSearchSender
-  {
-    private static final long serialVersionUID = 1;
-
-    MasterSender(String fullName, String buildId, String nodeId, String stepName, String stageName)
-    {
-      super(fullName, buildId, nodeId, stepName, stageName);
-    }
-
-    private Object writeReplace() throws IOException
-    {
-      return new AgentSender(fullName, buildId, nodeId, stepName, stageName);
-    }
-  }
-
-  static final class AgentSender extends ElasticSearchSender
-  {
-    private static final long serialVersionUID = 1;
-
-    protected AgentSender(String fullName, String buildId, String nodeId, String stepName, String stageName)
-    {
-      super(fullName, buildId, nodeId, stepName, stageName);
-    }
   }
 
   @Override
@@ -90,10 +78,57 @@ public class ElasticSearchSender implements BuildListener, Closeable
   @Override
   public void close() throws IOException
   {
+
+    // TODO: What happens if we have jenkins restart in between? Is the sender recreated or reloaded via CPS
+    //       Maybe we should get the run by querying jenkins.
+
+    // run is only set for the overall logger but not for the individual flow nodes
+    if (run != null)
+    {
+      Map<String, Object> data = new LinkedHashMap<>();
+      data.put("project", fullName);
+      data.put("build", buildId);
+      data.put("timestamp", TIME_FORMATTER.format(new Date()));
+      Result result = run.getResult();
+      if (result != null)
+      {
+        data.put("result", result.toString());
+      }
+      data.put("duration", run.getDuration());
+      getElasticSearchWriter().push(JSONObject.fromObject(data).toString());
+    }
     if (logger != null)
     {
       logger = null;
+      writer = null;
     }
+  }
+
+  private ElasticSearchWriter getElasticSearchWriter() throws IOException
+  {
+    if (writer == null)
+    {
+      URI uri = null;
+      try
+      {
+        String scheme = "http";
+        if (config.isSsl())
+        {
+          scheme = "https";
+        }
+        uri = new URI(scheme, null, config.getHost(), config.getPort(), config.getKey(), null, null);
+      }
+      catch (URISyntaxException e)
+      {
+        throw new IOException(e);
+      }
+      writer = new ElasticSearchWriter(uri, config.getUsername(), config.getPassword());
+      if (config.isSsl())
+      {
+        writer.setTrustKeyStore(config.getTrustKeyStore());
+      }
+    }
+    return writer;
   }
 
   private class ElasticSearchOutputStream extends LineTransformationOutputStream
@@ -119,7 +154,12 @@ public class ElasticSearchSender implements BuildListener, Closeable
       {
         data.put("stage", stageName);
       }
-      LOGGER.log(Level.INFO, "output: {0}", JSONObject.fromObject(data).toString());
+      if (agentName != null)
+      {
+        data.put("agent", agentName);
+      }
+      data.put("timestamp", TIME_FORMATTER.format(new Date()));
+      getElasticSearchWriter().push(JSONObject.fromObject(data).toString());
     }
   }
 }

@@ -34,19 +34,9 @@
     </pluginRepositories>
     <dependencies>
         <dependency>
-            <groupId>io.jenkins.plugins</groupId>
-            <artifactId>aws-global-configuration</artifactId>
-            <version>1.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-api</artifactId>
             <version>${workflow-api-plugin.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>aws-java-sdk</artifactId>
-            <version>1.11.341</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
@@ -63,11 +53,6 @@
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
-            <artifactId>workflow-cps</artifactId>
-            <version>2.60</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-basic-steps</artifactId>
             <version>2.12</version>
             <scope>test</scope>
@@ -75,40 +60,13 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-durable-task-step</artifactId>
-            <version>2.26</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>credentials-binding</artifactId>
-            <version>1.17</version>
-            <scope>test</scope>
+            <version>2.28</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>mock-slave</artifactId>
             <version>1.13</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>aws-credentials</artifactId>
-            <version>1.24</version>
         </dependency>
         <dependency>
         	<groupId>org.jenkins-ci.plugins</groupId>
@@ -118,6 +76,14 @@
         	<groupId>org.jenkins-ci.plugins</groupId>
         	<artifactId>pipeline-stage-step</artifactId>
         	<version>2.3</version>
+        </dependency>
+        <dependency>
+        	<groupId>org.jenkins-ci.plugins</groupId>
+        	<artifactId>credentials</artifactId>
+        </dependency>
+        <dependency>
+        	<groupId>org.jenkins-ci.plugins.workflow</groupId>
+        	<artifactId>workflow-support</artifactId>
         </dependency>
     </dependencies>
     <dependencyManagement>
@@ -150,7 +116,7 @@
             <dependency>
                 <groupId>org.jenkins-ci.plugins</groupId>
                 <artifactId>credentials</artifactId>
-                <version>2.1.16</version>
+                <version>2.1.18</version>
             </dependency>
             <dependency>
                 <groupId>org.jenkins-ci.plugins</groupId>
