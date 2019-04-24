@@ -229,8 +229,8 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     {
       StandardListBoxModel model = new StandardListBoxModel();
       model.includeEmptyValue()
-          .includeCurrentValue(certificateId)
-          .includeAs(ACL.SYSTEM, (Item)null, StandardCertificateCredentials.class);
+          .includeAs(ACL.SYSTEM, (Item)null, StandardCertificateCredentials.class)
+          .includeCurrentValue(certificateId);
 
       return model;
     }

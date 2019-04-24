@@ -136,9 +136,12 @@ public class ElasticSearchSender implements BuildListener, Closeable
     @Override
     protected void eol(byte[] b, int len) throws IOException
     {
+      Map<String, Object> data = new LinkedHashMap<>();
+      data.put("timestamp", TIME_FORMATTER.format(new Date()));
+
       String line = new String(b, 0, len, "UTF-8");
       line = ConsoleNote.removeNotes(line).trim();
-      Map<String, Object> data = new LinkedHashMap<>();
+      
       data.put("message", line);
       data.put("project", fullName);
       data.put("build", buildId);
@@ -158,7 +161,6 @@ public class ElasticSearchSender implements BuildListener, Closeable
       {
         data.put("agent", agentName);
       }
-      data.put("timestamp", TIME_FORMATTER.format(new Date()));
       getElasticSearchWriter().push(JSONObject.fromObject(data).toString());
     }
   }
