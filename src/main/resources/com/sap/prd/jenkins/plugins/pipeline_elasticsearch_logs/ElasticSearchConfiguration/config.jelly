@@ -10,6 +10,9 @@
 	<f:entry field="key" title="Key">
 	  <f:textbox/>
 	</f:entry>
+	<f:entry field="instanceId" title="Instance ID">
+	  <f:textbox/>
+	</f:entry>
 	<f:entry field="credentialsId" title="Credentials">
 	  <c:select/>
 	</f:entry> 
