@@ -145,6 +145,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
       data.put("message", line);
       data.put("project", fullName);
       data.put("build", buildId);
+      data.put("instance", config.getInstanceId());
       if (nodeId != null)
       {
         data.put("node", nodeId);

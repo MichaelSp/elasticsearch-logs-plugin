@@ -34,8 +34,10 @@ public class ElasticSearchSerializableConfiguration implements Serializable
 
   private final byte[] keyStoreBytes;
 
+  private final String instanceId;
+
   public ElasticSearchSerializableConfiguration(String host, int port, String key, String username, String password,
-      boolean ssl, byte[] keyStoreBytes)
+      boolean ssl, byte[] keyStoreBytes, String instanceId)
   {
     super();
     this.host = host;
@@ -44,6 +46,7 @@ public class ElasticSearchSerializableConfiguration implements Serializable
     this.username = username;
     this.password = password;
     this.ssl = ssl;
+    this.instanceId = instanceId;
     if (keyStoreBytes != null)
     {
       this.keyStoreBytes = keyStoreBytes.clone();
@@ -52,6 +55,11 @@ public class ElasticSearchSerializableConfiguration implements Serializable
     {
       this.keyStoreBytes = null;
     }
+  }
+
+  public String getInstanceId()
+  {
+    return instanceId;
   }
 
   public String getHost()

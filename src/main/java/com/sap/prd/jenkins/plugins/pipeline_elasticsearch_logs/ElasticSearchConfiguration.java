@@ -2,6 +2,7 @@ package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -12,8 +13,10 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -27,6 +30,7 @@ import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 
 import hudson.Extension;
+import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Item;
@@ -53,12 +57,25 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
   @CheckForNull
   private String credentialsId;
 
+  private String instanceId;
+
   @DataBoundConstructor
   public ElasticSearchConfiguration(String host, int port, String key)
   {
     this.host = host;
     this.port = port;
     this.key = key;
+  }
+
+  public String getInstanceId()
+  {
+    return instanceId;
+  }
+
+  @DataBoundSetter
+  public void setInstanceId(String instanceId)
+  {
+    this.instanceId = instanceId;
   }
 
   public boolean isSsl()
@@ -189,6 +206,16 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     return null;
   }
 
+  private String getEffectInstanceId()
+  {
+    if (Util.fixEmptyAndTrim(instanceId) != null)
+    {
+      return instanceId;
+    }
+    InstanceIdentity id = InstanceIdentity.get();
+    return new String(Base64.encodeBase64(id.getPublic().getEncoded()), StandardCharsets.UTF_8);
+  }
+
   public ElasticSearchSerializableConfiguration getSerializableConfiguration()
   {
     String username = null;
@@ -206,7 +233,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       key = "/" + key;
     }
 
-    return new ElasticSearchSerializableConfiguration(host, port, key, username, password, ssl, getKeyStoreBytes());
+    return new ElasticSearchSerializableConfiguration(host, port, key, username, password, ssl, getKeyStoreBytes(), getEffectInstanceId());
   }
 
   @Extension
