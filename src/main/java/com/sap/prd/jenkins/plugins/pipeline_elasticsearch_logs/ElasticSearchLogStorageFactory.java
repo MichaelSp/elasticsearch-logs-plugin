@@ -12,6 +12,7 @@ import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner.Executable;
 import org.jenkinsci.plugins.workflow.graph.BlockStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.graph.StepNode;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.log.BrokenLogStorage;
 import org.jenkinsci.plugins.workflow.log.LogStorage;
 import org.jenkinsci.plugins.workflow.log.LogStorageFactory;
@@ -25,7 +26,6 @@ import hudson.ExtensionList;
 import hudson.console.AnnotatedLargeText;
 import hudson.model.BuildListener;
 import hudson.model.Queue;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 
 @Extension
@@ -48,9 +48,9 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     try
     {
       Queue.Executable exec = owner.getExecutable();
-      if (exec instanceof Run)
+      if (exec instanceof WorkflowRun)
       {
-        Run<?, ?> b = (Run<?, ?>)exec;
+        WorkflowRun b = (WorkflowRun)exec;
         // TODO escape [:*@%] in job names using %XX URL encoding
         fullName = b.getParent().getFullName();
         buildId = b.getId();
@@ -67,6 +67,20 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     }
   }
 
+  static String getStepName(FlowNode node)
+  {
+    String stepName = null;
+    if (node instanceof StepNode)
+    {
+      StepDescriptor descriptor = ((StepNode)node).getDescriptor();
+      if (descriptor != null)
+      {
+        stepName = descriptor.getFunctionName();
+      }
+    }
+    return stepName;
+  }
+
   static ElasticSearchLogStorageFactory get()
   {
     return ExtensionList.lookupSingleton(ElasticSearchLogStorageFactory.class);
@@ -77,9 +91,9 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     private final String fullName;
     private final String buildId;
     private ElasticSearchSerializableConfiguration config;
-    private Run<?, ?> run;
+    private WorkflowRun run;
 
-    ElasticSearchLogStorage(String fullName, String buildId, ElasticSearchSerializableConfiguration config, Run<?, ?> run)
+    ElasticSearchLogStorage(String fullName, String buildId, ElasticSearchSerializableConfiguration config, WorkflowRun run)
     {
       this.fullName = fullName;
       this.buildId = buildId;
@@ -90,7 +104,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     @Override
     public BuildListener overallListener() throws IOException, InterruptedException
     {
-      ElasticSearchSender sender = new ElasticSearchSender(fullName, buildId, null, null, null, null, config);
+      ElasticSearchSender sender = new ElasticSearchSender(fullName, buildId, null, config);
       sender.setRun(run);
       return sender;
     }
@@ -98,24 +112,29 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     @Override
     public TaskListener nodeListener(FlowNode node) throws IOException, InterruptedException
     {
-      String stepName = null;
-      String stageName = getStageName(node);
-      String agentName = getAgentName(node);
-      if (node instanceof StepNode)
+      FlowNode stage = getStage(node);
+      String stageName = null;
+      String stageId = null;
+
+      if (stage != null)
       {
-        StepDescriptor descriptor = ((StepNode)node).getDescriptor();
-        if (descriptor != null)
+        stageId = stage.getId();
+        LabelAction labelAction = stage.getAction(LabelAction.class);
+        if (labelAction != null)
         {
-          stepName = descriptor.getFunctionName();
+          stageName = labelAction.getDisplayName();
         }
       }
-      LOGGER.log(Level.FINEST, "Node: {0}, Step: {1}, Stage: {2}, Agent: {3}", new Object[] { node.getId(), stepName, stageName, agentName });
-      return new ElasticSearchSender(fullName, buildId, node.getId(), stepName, stageName, agentName, config);
+      String agentName = getAgentName(node);
+      String stepName = getStepName(node);
+      NodeInfo nodeInfo = new NodeInfo(node.getId(), stepName, stageName, stageId, agentName);
+      LOGGER.log(Level.FINEST, "Node: {0}, Step: {1}, Stage: {2} ({3}), Agent: {4}", new Object[] { node.getId(), stepName, stageName, stageId, agentName });
+      return new ElasticSearchSender(fullName, buildId, nodeInfo, config);
     }
 
-    private String getStageName(FlowNode node)
+    private FlowNode getStage(FlowNode node)
     {
-      for (BlockStartNode bsn : node.getEnclosingBlocks())
+      for (BlockStartNode bsn : node.iterateEnclosingBlocks())
       {
         if (bsn instanceof StepNode)
         {
@@ -125,7 +144,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
             LabelAction labelAction = bsn.getAction(LabelAction.class);
             if (labelAction != null)
             {
-              return labelAction.getDisplayName();
+              return bsn;
             }
           }
         }
@@ -136,7 +155,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
 
     private String getAgentName(FlowNode node)
     {
-      for (BlockStartNode bsn : node.getEnclosingBlocks())
+      for (BlockStartNode bsn : node.iterateEnclosingBlocks())
       {
         if (bsn instanceof StepNode)
         {

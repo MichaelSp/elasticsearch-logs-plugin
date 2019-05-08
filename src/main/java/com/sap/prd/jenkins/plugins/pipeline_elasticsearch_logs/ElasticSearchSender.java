@@ -6,54 +6,56 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.annotation.CheckForNull;
 
-import org.apache.commons.lang.time.FastDateFormat;
+import org.jenkinsci.plugins.workflow.flow.FlowExecution;
+import org.jenkinsci.plugins.workflow.graph.FlowNode;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.jenkinsci.plugins.workflow.support.visualization.table.FlowGraphTable;
+import org.jenkinsci.plugins.workflow.support.visualization.table.FlowGraphTable.Row;
 
 import hudson.console.ConsoleNote;
 import hudson.console.LineTransformationOutputStream;
 import hudson.model.BuildListener;
 import hudson.model.Result;
-import hudson.model.Run;
 import net.sf.json.JSONObject;
 
 public class ElasticSearchSender implements BuildListener, Closeable
 {
   //private static final Logger LOGGER = Logger.getLogger(ElasticSearchSender.class.getName());
 
-  private static final FastDateFormat TIME_FORMATTER = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+  private static final DateTimeFormatter UTC_MILLIS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
   private static final long serialVersionUID = 1;
 
   private transient @CheckForNull PrintStream logger;
   protected final String fullName;
   protected final String buildId;
-  protected final String nodeId;
-  protected final String stepName;
-  protected final String stageName;
-  protected final String agentName;
+  protected final NodeInfo nodeInfo;
   
   protected transient ElasticSearchWriter writer;
   protected final ElasticSearchSerializableConfiguration config;
-  protected transient Run<?, ?> run;
+  protected transient WorkflowRun run;
 
-  public ElasticSearchSender(String fullName, String buildId, String nodeId, String stepName, String stageName, String agentName,
+  public ElasticSearchSender(String fullName, String buildId, NodeInfo nodeInfo,
       ElasticSearchSerializableConfiguration config)
   {
     this.fullName = fullName;
     this.buildId = buildId;
-    this.nodeId = nodeId;
-    this.stepName = stepName;
-    this.stageName = stageName;
-    this.agentName = agentName;
+    this.nodeInfo = nodeInfo;
     this.config = config;
   }
 
-  public void setRun(Run<?, ?> run)
+  public void setRun(WorkflowRun run)
   {
     this.run = run;
   }
@@ -75,6 +77,19 @@ public class ElasticSearchSender implements BuildListener, Closeable
     return logger;
   }
 
+  private Map<String, Object> createData()
+  {
+    Map<String, Object> data = new LinkedHashMap<>();
+    Date date = new Date();
+    data.put("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(UTC_MILLIS));
+    data.put("timestampMillis",date.getTime());
+    data.put("project", fullName);
+    data.put("build", buildId);
+    data.put("instance", config.getInstanceId());
+
+    return data;
+  }
+
   @Override
   public void close() throws IOException
   {
@@ -85,16 +100,36 @@ public class ElasticSearchSender implements BuildListener, Closeable
     // run is only set for the overall logger but not for the individual flow nodes
     if (run != null)
     {
-      Map<String, Object> data = new LinkedHashMap<>();
-      data.put("project", fullName);
-      data.put("build", buildId);
-      data.put("timestamp", TIME_FORMATTER.format(new Date()));
+      Map<String, Object> data = createData();
       Result result = run.getResult();
       if (result != null)
       {
         data.put("result", result.toString());
       }
       data.put("duration", run.getDuration());
+
+      FlowExecution e = run.getExecution();
+      Map<String, Map<String, Object>> nodes = new HashMap<>();
+      FlowGraphTable t = new FlowGraphTable(e);
+      t.build();
+      for (Row r: t.getRows())
+      {
+        FlowNode n = r.getNode();
+        Map<String, Object> nodeInfo = new HashMap<>();
+        nodeInfo.put("id", n.getId());
+        String stepName = ElasticSearchLogStorageFactory.getStepName(n);
+        if (stepName != null)
+        {
+          nodeInfo.put("step", stepName);
+        }
+        if (n.getEnclosingId() != null)
+        {
+          nodeInfo.put("enclosingId", n.getEnclosingId());
+        }
+        nodeInfo.put("duration", r.getDurationMillis());
+        nodes.put(n.getId(), nodeInfo);
+      }
+      data.put("nodes", nodes);
       getElasticSearchWriter().push(JSONObject.fromObject(data).toString());
     }
     if (logger != null)
@@ -136,31 +171,15 @@ public class ElasticSearchSender implements BuildListener, Closeable
     @Override
     protected void eol(byte[] b, int len) throws IOException
     {
-      Map<String, Object> data = new LinkedHashMap<>();
-      data.put("timestamp", TIME_FORMATTER.format(new Date()));
+      Map<String, Object> data = createData();
 
-      String line = new String(b, 0, len, "UTF-8");
+      String line = new String(b, 0, len, StandardCharsets.UTF_8);
       line = ConsoleNote.removeNotes(line).trim();
       
       data.put("message", line);
-      data.put("project", fullName);
-      data.put("build", buildId);
-      data.put("instance", config.getInstanceId());
-      if (nodeId != null)
+      if (nodeInfo != null)
       {
-        data.put("node", nodeId);
-      }
-      if (stepName != null)
-      {
-        data.put("step", stepName);
-      }
-      if (stageName != null)
-      {
-        data.put("stage", stageName);
-      }
-      if (agentName != null)
-      {
-        data.put("agent", agentName);
+        nodeInfo.appendNodeInfo(data);
       }
       getElasticSearchWriter().push(JSONObject.fromObject(data).toString());
     }
