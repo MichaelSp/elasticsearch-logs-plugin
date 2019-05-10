@@ -3,6 +3,8 @@ package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs;
 import java.io.Serializable;
 import java.util.Map;
 
+import hudson.Util;
+
 public class NodeInfo implements Serializable
 {
   private static final long serialVersionUID = 1L;
@@ -19,7 +21,7 @@ public class NodeInfo implements Serializable
     this.stepName = stepName;
     this.stageName = stageName;
     this.stageId = stageId;
-    this.agentName = agentName;
+    this.agentName = Util.fixEmptyAndTrim(agentName);
   }
 
   public void appendNodeInfo(Map<String, Object> data)

@@ -157,7 +157,10 @@ public class ElasticSearchSender implements BuildListener, Closeable
       }
       nodes.put(node.getId(), nodeInfo);
     }
-    data.put("nodes", nodes);
+    if (nodes.size() > 0)
+    {
+      data.put("nodes", nodes);
+    }
     getElasticSearchWriter().push(JSONObject.fromObject(data).toString());
   }
 
@@ -225,7 +228,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
       line = ConsoleNote.removeNotes(line).trim();
 
       data.put("message", line);
-      data.put("eventType", "message");
+      data.put("eventType", eventPrefix + "Message");
       if (nodeInfo != null)
       {
         nodeInfo.appendNodeInfo(data);
