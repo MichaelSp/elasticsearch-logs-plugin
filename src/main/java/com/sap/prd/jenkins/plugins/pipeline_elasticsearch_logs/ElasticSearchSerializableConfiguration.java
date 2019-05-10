@@ -3,12 +3,13 @@ package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.URI;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-
-import javax.annotation.Nonnull;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -16,36 +17,29 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 @Restricted(NoExternalUse.class)
 public class ElasticSearchSerializableConfiguration implements Serializable
 {
+  private static final Logger LOGGER = Logger.getLogger(ElasticSearchSerializableConfiguration.class.getName());
+  
   private static final long serialVersionUID = 1L;
-
-  @Nonnull
-  private final String host;
-
-  private final int port;
-
-  @Nonnull
-  private final String key;
 
   private final String username;
 
   private final String password;
 
-  private final boolean ssl;
-
   private final byte[] keyStoreBytes;
 
   private final String instanceId;
+  
+  private final URI uri;
+  
+  private transient KeyStore trustKeyStore;
 
-  public ElasticSearchSerializableConfiguration(String host, int port, String key, String username, String password,
-      boolean ssl, byte[] keyStoreBytes, String instanceId)
+  public ElasticSearchSerializableConfiguration(URI uri, String username, String password,
+        byte[] keyStoreBytes, String instanceId)
   {
     super();
-    this.host = host;
-    this.port = port;
-    this.key = key;
+    this.uri = uri;
     this.username = username;
     this.password = password;
-    this.ssl = ssl;
     this.instanceId = instanceId;
     if (keyStoreBytes != null)
     {
@@ -62,19 +56,9 @@ public class ElasticSearchSerializableConfiguration implements Serializable
     return instanceId;
   }
 
-  public String getHost()
+  public URI getUri()
   {
-    return host;
-  }
-
-  public int getPort()
-  {
-    return port;
-  }
-
-  public String getKey()
-  {
-    return key;
+    return uri;
   }
 
   public String getUsername()
@@ -87,25 +71,21 @@ public class ElasticSearchSerializableConfiguration implements Serializable
     return password;
   }
 
-  public boolean isSsl()
-  {
-    return ssl;
-  }
-
   public KeyStore getTrustKeyStore()
   {
-    KeyStore keyStore = null;
-    try
+    if (trustKeyStore == null && keyStoreBytes != null)
     {
-      keyStore = KeyStore.getInstance("PKCS12");
-      keyStore.load(new ByteArrayInputStream(keyStoreBytes), "".toCharArray());
+      try
+      {
+        trustKeyStore = KeyStore.getInstance("PKCS12");
+        trustKeyStore.load(new ByteArrayInputStream(keyStoreBytes), "".toCharArray());
+      }
+      catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e)
+      {
+        LOGGER.log(Level.WARNING, "Failed to create KeyStore from bytes", e);
+      }
     }
-    catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e)
-    {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    return keyStore;
+    return trustKeyStore;
   }
 
 }

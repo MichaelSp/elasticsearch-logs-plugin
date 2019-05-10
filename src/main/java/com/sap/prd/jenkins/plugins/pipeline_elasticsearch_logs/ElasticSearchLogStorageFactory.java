@@ -104,9 +104,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     @Override
     public BuildListener overallListener() throws IOException, InterruptedException
     {
-      ElasticSearchSender sender = new ElasticSearchSender(fullName, buildId, null, config);
-      sender.setRun(run);
-      return sender;
+      return new ElasticSearchSender(fullName, buildId, null, config, run);
     }
 
     @Override
@@ -129,7 +127,8 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
       String stepName = getStepName(node);
       NodeInfo nodeInfo = new NodeInfo(node.getId(), stepName, stageName, stageId, agentName);
       LOGGER.log(Level.FINEST, "Node: {0}, Step: {1}, Stage: {2} ({3}), Agent: {4}", new Object[] { node.getId(), stepName, stageName, stageId, agentName });
-      return new ElasticSearchSender(fullName, buildId, nodeInfo, config);
+      return new ElasticSearchSender(fullName, buildId, nodeInfo, config, run);
+      
     }
 
     private FlowNode getStage(FlowNode node)

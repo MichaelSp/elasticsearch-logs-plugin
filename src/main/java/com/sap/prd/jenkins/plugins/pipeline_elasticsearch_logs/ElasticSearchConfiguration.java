@@ -2,6 +2,8 @@ package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -216,7 +218,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     return new String(Base64.encodeBase64(id.getPublic().getEncoded()), StandardCharsets.UTF_8);
   }
 
-  public ElasticSearchSerializableConfiguration getSerializableConfiguration()
+  public ElasticSearchSerializableConfiguration getSerializableConfiguration() throws IOException
   {
     String username = null;
     String password = null;
@@ -233,7 +235,22 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       key = "/" + key;
     }
 
-    return new ElasticSearchSerializableConfiguration(host, port, key, username, password, ssl, getKeyStoreBytes(), getEffectInstanceId());
+    URI uri = null;
+    try
+    {
+      String scheme = "http";
+      if (isSsl())
+      {
+        scheme = "https";
+      }
+      uri = new URI(scheme, null, host, port, key, null, null);
+    }
+    catch (URISyntaxException e)
+    {
+      throw new IOException(e);
+    }
+
+    return new ElasticSearchSerializableConfiguration(uri, username, password, getKeyStoreBytes(), getEffectInstanceId());
   }
 
   @Extension
