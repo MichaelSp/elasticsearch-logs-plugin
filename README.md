@@ -33,9 +33,20 @@ The following table lists the fields that are sent for each event and for which 
 | message | The log line  | | | | | ✓ | ✓ |
 | node | The id of the flow node | |  |  ✓ | ✓ |  | ✓ |
 | step | The name of the step | |  |  ✓ | ✓ |  | ✓ |
-| stage | The name of the stage if the step is inside a stage | |  |  ✓ | ✓ |  | ✓ |
-| stageId | The id of the node of the stage if the step is inside a stage | |  |  ✓ | ✓ | | ✓ |
-| agent | The name of the agent when inside an agent (node step) | |  |  ✓ | ✓ |  | ✓ |
+| stage | The name of the enclosing stage | |  |  ✓ | ✓ |  | ✓ |
+| stageId | The id of the enclosing stage | |  |  ✓ | ✓ | | ✓ |
+| agent | The name of the enclosing agent (node step) | |  |  ✓ | ✓ |  | ✓ |
 | nodes | The list of flow nodes and their status |  | ✓ |  ✓ | ✓ |  | |
 
+#### Flow node list
+The list of flow nodes contains the following fields:
 
+| Field | description |
+| ----- | -----|
+| displayName | The desription of the step as shown in the pipeline steps UI | 
+| errorMessage | The message of the Exception if the step failed | 
+| step | The name of the step | 
+| id | The id of this flow node |
+| enclosingId | The id of the enclosing block flow node | 
+| status | The status of the execution of the node |
+| duration | The duration of the step | 
