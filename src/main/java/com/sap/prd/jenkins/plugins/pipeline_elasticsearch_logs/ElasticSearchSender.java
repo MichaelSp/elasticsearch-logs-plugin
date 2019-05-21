@@ -11,17 +11,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import org.jenkinsci.plugins.workflow.actions.ErrorAction;
-import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException;
-import org.jenkinsci.plugins.workflow.support.visualization.table.FlowGraphTable;
-import org.jenkinsci.plugins.workflow.support.visualization.table.FlowGraphTable.Row;
 
 import hudson.console.ConsoleNote;
 import hudson.console.LineTransformationOutputStream;
@@ -46,16 +42,18 @@ public class ElasticSearchSender implements BuildListener, Closeable
   protected final ElasticSearchSerializableConfiguration config;
   protected transient WorkflowRun run;
   protected String eventPrefix;
-
+  protected transient final NodeGraphStatus nodeGraphStatus;
 
   public ElasticSearchSender(@Nonnull String fullName, @Nonnull String buildId, @CheckForNull NodeInfo nodeInfo,
-        @Nonnull ElasticSearchSerializableConfiguration config, @Nonnull WorkflowRun run) throws IOException
+        @Nonnull ElasticSearchSerializableConfiguration config, @Nonnull WorkflowRun run,
+        NodeGraphStatus nodeGraphStatus) throws IOException
   {
     this.fullName = fullName;
     this.buildId = buildId;
     this.nodeInfo = nodeInfo;
     this.config = config;
     this.run = run;
+    this.nodeGraphStatus = nodeGraphStatus;
     if (nodeInfo != null)
     {
       eventPrefix = "node";
@@ -100,62 +98,48 @@ public class ElasticSearchSender implements BuildListener, Closeable
   public void sendNodeUpdate(boolean isStart) throws IOException
   {
     Map<String, Object> data = createData();
-    Result result = run.getResult();
-    if (result != null)
+    if (run != null)
     {
-      data.put("result", result.toString());
-    }
-    long duration = run.getDuration();
-    if (duration > 0)
-    {
-      data.put("duration", run.getDuration());
+      Result result = run.getResult();
+      if (result != null)
+      {
+        data.put("result", result.toString());
+      }
+      long duration = run.getDuration();
+      if (duration > 0)
+      {
+        data.put("duration", run.getDuration());
+      }
     }
 
     if (nodeInfo != null)
     {
       nodeInfo.appendNodeInfo(data);
     }
-    
+
     if (isStart)
     {
-      data.put("eventType", eventPrefix + "Start");
+      data.put("eventType", "flowGraph::" + eventPrefix + "Start");
     }
     else
     {
-      data.put("eventType", eventPrefix + "End");
+      data.put("eventType", "flowGraph::" + eventPrefix + "End");
     }
-    
+
     Map<String, Map<String, Object>> nodes = new HashMap<>();
-    FlowGraphTable flowGraphTable = new FlowGraphTable(run.getExecution());
-    flowGraphTable.build();
-    
-    for (Row row : flowGraphTable.getRows())
+
+    List<RowStatus> rows;
+    if (run == null)
     {
-      FlowNode node = row.getNode();
-      Map<String, Object> nodeInfo = new HashMap<>();
-      nodeInfo.put("id", node.getId());
-      String stepName = ElasticSearchLogStorageFactory.getStepName(node);
-      if (stepName != null)
-      {
-        nodeInfo.put("step", stepName);
-      }
-      if (node.getEnclosingId() != null)
-      {
-        nodeInfo.put("enclosingId", node.getEnclosingId());
-      }
-      nodeInfo.put("displayName", node.getDisplayName());
-      nodeInfo.put("status", getStatus(node));
-      nodeInfo.put("duration", row.getDurationMillis());
-      ErrorAction error = node.getError();
-      if (error != null)
-      {
-        Throwable t = error.getError();
-        if (t != null)
-        {
-          nodeInfo.put("errorMessage", t.getMessage());
-        }
-      }
-      nodes.put(node.getId(), nodeInfo);
+      rows = nodeGraphStatus.getUpdatedRows();
+    }
+    else
+    {
+      rows = nodeGraphStatus.getRows();
+    }
+    for (RowStatus row : rows)
+    {
+      nodes.put(row.getNodeId(), row.getData());
     }
     if (nodes.size() > 0)
     {
@@ -167,41 +151,17 @@ public class ElasticSearchSender implements BuildListener, Closeable
   @Override
   public void close() throws IOException
   {
-
     // TODO: What happens if we have jenkins restart in between? Is the sender recreated or reloaded via CPS
     //       Maybe we should get the run by querying jenkins.
 
     sendNodeUpdate(false);
-    if (logger != null)
+    logger = null;
+    writer = null;
+    
+    if (run != null)
     {
-      logger = null;
-      writer = null;
+      ElasticSearchLogStorageFactory.get().removeNodeGraphStatus(run);
     }
-  }
-
-  private String getStatus(FlowNode node)
-  {
-    ErrorAction error = node.getError();
-    if (error != null)
-    {
-      if (error.getError() instanceof FlowInterruptedException)
-      {
-        return "ABORTED";
-      }
-      else
-      {
-        return "FAILURE";
-      }
-    }
-    else
-    {
-      if (node.isActive())
-      {
-        return "RUNNING";
-      }
-    }
-
-    return "SUCCESS";
   }
 
   private ElasticSearchWriter getElasticSearchWriter() throws IOException
