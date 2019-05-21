@@ -49,7 +49,7 @@ public class NodeInfo implements Serializable
   {
     if (nodeId != null)
     {
-      data.put("node", nodeId);
+      data.put("flowNodeId", nodeId);
     }
     if (stepName != null)
     {

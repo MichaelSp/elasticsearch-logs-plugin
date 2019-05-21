@@ -12,10 +12,10 @@ The following table describes the different event types.
 
 | event type | description |
 | ----- | ----- |
-| buildStart | Sent once at the start of the build |
-| buildEnd | Sent once at the end of the build |
-| nodeStart | Sent once at the start of the a flow node |
-| nodeEnd | Sent once at the end of the a flow node |
+| flowGraph::buildStart | Sent once at the start of the build |
+| flowGraph::buildEnd | Sent once at the end of the build |
+| flowGraph::nodeStart | Sent once at the start of the a flow node |
+| flowGraph::nodeEnd | Sent once at the end of the a flow node |
 | buildMessage | A log line sent from the pipeline execution engine (In Jenkins these are the lines displayed in light grey) |
 | nodeMessage | A log output line sent from the execution of a flow node |
 
@@ -31,12 +31,15 @@ The following table lists the fields that are sent for each event and for which 
 | build | The build number  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | instance | The Jenkins instance  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | message | The log line  | | | | | ✓ | ✓ |
-| node | The id of the flow node | |  |  ✓ | ✓ |  | ✓ |
+| flowNodeId | The id of the flow node | |  |  ✓ | ✓ |  | ✓ |
 | step | The name of the step | |  |  ✓ | ✓ |  | ✓ |
 | stage | The name of the enclosing stage | |  |  ✓ | ✓ |  | ✓ |
 | stageId | The id of the enclosing stage | |  |  ✓ | ✓ | | ✓ |
 | agent | The name of the enclosing agent (node step) | |  |  ✓ | ✓ |  | ✓ |
 | nodes | The list of flow nodes and their status |  | ✓ |  ✓ | ✓ |  | |
+
+To reduce that amount of data sent with flowGraph node events the nodes field contains the list of flow nodes that have a changed status.
+The buildEnd event will contain the full list of flow nodes with their status.
 
 #### Flow node list
 The list of flow nodes contains the following fields:

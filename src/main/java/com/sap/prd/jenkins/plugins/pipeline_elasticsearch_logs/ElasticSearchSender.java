@@ -36,17 +36,17 @@ public class ElasticSearchSender implements BuildListener, Closeable
   private transient @CheckForNull PrintStream logger;
   protected final String fullName;
   protected final String buildId;
-  protected final NodeInfo nodeInfo;
+  protected final @CheckForNull NodeInfo nodeInfo;
 
   protected transient ElasticSearchWriter writer;
   protected final ElasticSearchSerializableConfiguration config;
-  protected transient WorkflowRun run;
+  protected transient @CheckForNull WorkflowRun run;
   protected String eventPrefix;
   protected transient final NodeGraphStatus nodeGraphStatus;
 
   public ElasticSearchSender(@Nonnull String fullName, @Nonnull String buildId, @CheckForNull NodeInfo nodeInfo,
-        @Nonnull ElasticSearchSerializableConfiguration config, @Nonnull WorkflowRun run,
-        NodeGraphStatus nodeGraphStatus) throws IOException
+        @Nonnull ElasticSearchSerializableConfiguration config,  @CheckForNull WorkflowRun run,
+        @Nonnull NodeGraphStatus nodeGraphStatus) throws IOException
   {
     this.fullName = fullName;
     this.buildId = buildId;
