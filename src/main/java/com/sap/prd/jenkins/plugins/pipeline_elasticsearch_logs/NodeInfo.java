@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.util.Map;
 
 import org.jenkinsci.plugins.workflow.actions.LabelAction;
+import org.jenkinsci.plugins.workflow.actions.ThreadNameAction;
 import org.jenkinsci.plugins.workflow.actions.WorkspaceAction;
+import org.jenkinsci.plugins.workflow.cps.steps.ParallelStep;
 import org.jenkinsci.plugins.workflow.graph.BlockStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.graph.StepNode;
@@ -20,14 +22,19 @@ public class NodeInfo implements Serializable
   protected final String stepName;
   protected final String stageName;
   protected final String stageId;
+  protected final String parallelBranchName;
+  protected final String parallelBranchId;
   protected final String agentName;
   
   public NodeInfo(FlowNode node)
   {
     
     FlowNode stage = getStage(node);
+    FlowNode parallelBranch = getParallelBranch(node);
     String stageName = null;
     String stageId = null;
+    String parallelBranchName = null;
+    String parallelBranchId = null;
 
     if (stage != null)
     {
@@ -38,11 +45,24 @@ public class NodeInfo implements Serializable
         stageName = labelAction.getDisplayName();
       }
     }
+
+    if (parallelBranch != null)
+    {
+      parallelBranchId = parallelBranch.getId();
+      ThreadNameAction labelAction = parallelBranch.getAction(ThreadNameAction.class);
+      if (labelAction != null)
+      {
+        parallelBranchName = labelAction.getThreadName();
+      }
+    }
+
     this.stepName = ElasticSearchLogStorageFactory.getStepName(node);
     this.agentName = getAgentName(node);
     this.nodeId = node.getId();
     this.stageName = stageName;
     this.stageId = stageId;
+    this.parallelBranchName = parallelBranchName;
+    this.parallelBranchId = parallelBranchId;
   }
   
   public void appendNodeInfo(Map<String, Object> data)
@@ -63,6 +83,14 @@ public class NodeInfo implements Serializable
     {
       data.put("stage", stageName);
     }
+    if (parallelBranchName != null)
+    {
+      data.put("parallelBranchName", parallelBranchName);
+    }
+    if (parallelBranchId != null)
+    {
+      data.put("parallelBranchId", parallelBranchId);
+    }
     if (agentName != null)
     {
       data.put("agent", agentName);
@@ -77,6 +105,27 @@ public class NodeInfo implements Serializable
       {
         StepDescriptor descriptor = ((StepNode)bsn).getDescriptor();
         if (descriptor instanceof StageStep.DescriptorImpl)
+        {
+          LabelAction labelAction = bsn.getAction(LabelAction.class);
+          if (labelAction != null)
+          {
+            return bsn;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private FlowNode getParallelBranch(FlowNode node)
+  {
+    for (BlockStartNode bsn : node.iterateEnclosingBlocks())
+    {
+      if (bsn instanceof StepNode)
+      {
+        StepDescriptor descriptor = ((StepNode)bsn).getDescriptor();
+        if (descriptor instanceof ParallelStep.DescriptorImpl)
         {
           LabelAction labelAction = bsn.getAction(LabelAction.class);
           if (labelAction != null)
