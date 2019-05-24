@@ -14,6 +14,10 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.support.steps.ExecutorStep;
 import org.jenkinsci.plugins.workflow.support.steps.StageStep;
 
+/**
+ * Information about a FlowNode to be sent with message events.
+ *
+ */
 public class NodeInfo implements Serializable
 {
   private static final long serialVersionUID = 1L;
@@ -25,10 +29,10 @@ public class NodeInfo implements Serializable
   protected final String parallelBranchName;
   protected final String parallelBranchId;
   protected final String agentName;
-  
+
   public NodeInfo(FlowNode node)
   {
-    
+
     FlowNode stage = getStage(node);
     FlowNode parallelBranch = getParallelBranch(node);
     String stageName = null;
@@ -64,24 +68,27 @@ public class NodeInfo implements Serializable
     this.parallelBranchName = parallelBranchName;
     this.parallelBranchId = parallelBranchId;
   }
-  
+
+  /**
+   * Appends this nodes info to the given map.
+   * 
+   * @param data
+   *          The map to receive the node info
+   */
   public void appendNodeInfo(Map<String, Object> data)
   {
-    if (nodeId != null)
-    {
-      data.put("flowNodeId", nodeId);
-    }
+    data.put("flowNodeId", nodeId);
     if (stepName != null)
     {
       data.put("step", stepName);
     }
     if (stageName != null)
     {
-      data.put("stageId", stageId);
+      data.put("stageName", stageName);
     }
     if (stageId != null)
     {
-      data.put("stage", stageName);
+      data.put("stageId", stageId);
     }
     if (parallelBranchName != null)
     {
@@ -96,14 +103,22 @@ public class NodeInfo implements Serializable
       data.put("agent", agentName);
     }
   }
-  
+
+  /**
+   * Returns the FlowNode of a stage step that encloses the given FlowNode.
+   * 
+   * @param node
+   *          The FlowNode to check.
+   * @return The BlockStartNode representing the start of the stage step or null if not inside a
+   *         stage.
+   */
   private FlowNode getStage(FlowNode node)
   {
     for (BlockStartNode bsn : node.iterateEnclosingBlocks())
     {
       if (bsn instanceof StepNode)
       {
-        StepDescriptor descriptor = ((StepNode)bsn).getDescriptor();
+        StepDescriptor descriptor = ((StepNode) bsn).getDescriptor();
         if (descriptor instanceof StageStep.DescriptorImpl)
         {
           LabelAction labelAction = bsn.getAction(LabelAction.class);
@@ -118,17 +133,25 @@ public class NodeInfo implements Serializable
     return null;
   }
 
+  /**
+   * Returns the FlowNode of a parallel branch step that encloses the given FlowNode.
+   * 
+   * @param node
+   *          The FlowNode to check.
+   * @return The BlockStartNode representing the start of the parallel branch step or null if not
+   *         inside a parallel branch.
+   */
   private FlowNode getParallelBranch(FlowNode node)
   {
     for (BlockStartNode bsn : node.iterateEnclosingBlocks())
     {
       if (bsn instanceof StepNode)
       {
-        StepDescriptor descriptor = ((StepNode)bsn).getDescriptor();
+        StepDescriptor descriptor = ((StepNode) bsn).getDescriptor();
         if (descriptor instanceof ParallelStep.DescriptorImpl)
         {
-          LabelAction labelAction = bsn.getAction(LabelAction.class);
-          if (labelAction != null)
+          ThreadNameAction threadNameAction = bsn.getAction(ThreadNameAction.class);
+          if (threadNameAction != null)
           {
             return bsn;
           }
@@ -139,13 +162,20 @@ public class NodeInfo implements Serializable
     return null;
   }
 
+  /**
+   * Returns the name of the agent this FlowNode is running on.
+   * 
+   * @param node
+   *          The FlowNode to check
+   * @return The name of the agent or null if not running on an agent.
+   */
   private String getAgentName(FlowNode node)
   {
     for (BlockStartNode bsn : node.iterateEnclosingBlocks())
     {
       if (bsn instanceof StepNode)
       {
-        StepDescriptor descriptor = ((StepNode)bsn).getDescriptor();
+        StepDescriptor descriptor = ((StepNode) bsn).getDescriptor();
         if (descriptor instanceof ExecutorStep.DescriptorImpl)
         {
           WorkspaceAction workspaceAction = bsn.getAction(WorkspaceAction.class);
@@ -163,8 +193,8 @@ public class NodeInfo implements Serializable
   @Override
   public String toString()
   {
-    return String.format("Node: %s, Step: %s, Stage: %s (%s), Agent: %s", nodeId, stepName, stageName, stageId, agentName);
+    return String.format("Node: %s, Step: %s, Stage: %s (%s), Agent: %s", nodeId, stepName, stageName, stageId,
+          agentName);
   }
-  
-  
+
 }

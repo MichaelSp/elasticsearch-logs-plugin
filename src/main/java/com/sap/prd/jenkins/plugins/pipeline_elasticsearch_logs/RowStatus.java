@@ -4,13 +4,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
+import org.jenkinsci.plugins.workflow.actions.LabelAction;
+import org.jenkinsci.plugins.workflow.actions.ThreadNameAction;
 import org.jenkinsci.plugins.workflow.actions.WarningAction;
+import org.jenkinsci.plugins.workflow.cps.steps.ParallelStep;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
+import org.jenkinsci.plugins.workflow.graph.StepNode;
 import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
+import org.jenkinsci.plugins.workflow.support.steps.StageStep;
 import org.jenkinsci.plugins.workflow.support.visualization.table.FlowGraphTable.Row;
 
 import hudson.model.Result;
 
+/**
+ * Helper class that holds the status of row from the FlowGraphTable so we can check if the status has changed.
+ *
+ */
 public class RowStatus
 {
 
@@ -19,6 +29,8 @@ public class RowStatus
   private final String displayName;
   private final String enclosingId;
   private final long startTimeMillis;
+  private final String stageName;
+  private final String parallelBranchName;
   private String status = null;
   private long duration;
   private String errorMessage = null;
@@ -35,6 +47,8 @@ public class RowStatus
     status = getStatus(node);
     duration = row.getDurationMillis();
     errorMessage = getErrorMessage(node);
+    stageName = getStageName(node);
+    parallelBranchName = getParallelBranchName(node);
   }
 
   public String getNodeId()
@@ -51,6 +65,40 @@ public class RowStatus
       errorMessage = error.getError().getMessage();
     }
     return errorMessage;
+  }
+  
+  private String getStageName(FlowNode node)
+  {
+    if (node instanceof StepNode)
+    {
+      StepDescriptor descriptor = ((StepNode)node).getDescriptor();
+      if (descriptor instanceof StageStep.DescriptorImpl)
+      {
+        LabelAction labelAction = node.getAction(LabelAction.class);
+        if (labelAction != null)
+        {
+          return labelAction.getDisplayName();
+        }
+      }
+    }
+    return null;
+  }
+
+  private String getParallelBranchName(FlowNode node)
+  {
+    if (node instanceof StepNode)
+    {
+      StepDescriptor descriptor = ((StepNode)node).getDescriptor();
+      if (descriptor instanceof ParallelStep.DescriptorImpl)
+      {
+        ThreadNameAction threadNameAction = node.getAction(ThreadNameAction.class);
+        if (threadNameAction != null)
+        {
+          return threadNameAction.getThreadName();
+        }
+      }
+    }
+    return null;
   }
 
   public boolean updateRow(Row row)
@@ -81,6 +129,16 @@ public class RowStatus
     if (enclosingId != null)
     {
       nodeInfo.put("enclosingId", enclosingId);
+    }
+
+    if (stageName != null)
+    {
+      nodeInfo.put("stageName", stageName);
+    }
+
+    if (parallelBranchName != null)
+    {
+      nodeInfo.put("parallelBranchName", parallelBranchName);
     }
 
     nodeInfo.put("displayName", displayName);

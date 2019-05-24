@@ -30,11 +30,13 @@ The following table lists the fields that are sent for each event and for which 
 | project | The project that is built | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | build | The build number  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | instance | The Jenkins instance  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| message | The log line  | | | | | ✓ | ✓ |
+| message | The log line | | | | | ✓ | ✓ |
 | flowNodeId | The id of the flow node | |  |  ✓ | ✓ |  | ✓ |
 | step | The name of the step | |  |  ✓ | ✓ |  | ✓ |
-| stage | The name of the enclosing stage | |  |  ✓ | ✓ |  | ✓ |
-| stageId | The id of the enclosing stage | |  |  ✓ | ✓ | | ✓ |
+| stageName | The name of the enclosing stage | |  |  ✓ | ✓ |  | ✓ |
+| stageId | The id of the enclosing stage flow node | |  |  ✓ | ✓ | | ✓ |
+| parallelBranchName | The name of the enclosing parallel branch | |  |  ✓ | ✓ |  | ✓ |
+| parallelBranchId | The id of the enclosing parallel branch flow node | |  |  ✓ | ✓ | | ✓ |
 | agent | The name of the enclosing agent (node step) | |  |  ✓ | ✓ |  | ✓ |
 | nodes | The list of flow nodes and their status |  | ✓ |  ✓ | ✓ |  | |
 
@@ -50,6 +52,8 @@ The list of flow nodes contains the following fields:
 | errorMessage | The message of the Exception if the step failed | 
 | step | The name of the step | 
 | id | The id of this flow node |
-| enclosingId | The id of the enclosing block flow node | 
+| enclosingId | The id of the enclosing flow node | 
 | status | The status of the execution of the node |
 | duration | The duration of the step | 
+| parallelBranchName | The duration of the step | 
+| stageName | The duration of the step | 

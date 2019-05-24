@@ -14,6 +14,10 @@ import java.util.logging.Logger;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
+/**
+ * A serializable representation of the plugin configuration with credentials resolved.
+ *  
+ */
 @Restricted(NoExternalUse.class)
 public class ElasticSearchSerializableConfiguration implements Serializable
 {

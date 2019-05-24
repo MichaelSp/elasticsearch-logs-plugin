@@ -32,6 +32,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import com.google.common.collect.Range;
 
+/**
+ * Post data to Elastic Search.
+ *
+ */
 public class ElasticSearchWriter
 {
   private static final Logger LOGGER = Logger.getLogger(ElasticSearchWriter.class.getName());
@@ -71,7 +75,7 @@ public class ElasticSearchWriter
     if (auth == null && StringUtils.isNotBlank(username))
     {
       auth = Base64
-          .encodeBase64String((username + ":" + StringUtils.defaultString(password)).getBytes(StandardCharsets.UTF_8));
+        .encodeBase64String((username + ":" + StringUtils.defaultString(password)).getBytes(StandardCharsets.UTF_8));
     }
     return auth;
   }
@@ -110,15 +114,22 @@ public class ElasticSearchWriter
           SSLHelper.setClientBuilderSSLContext(clientBuilder, trustKeyStore);
         }
         catch (KeyManagementException | CertificateException | NoSuchAlgorithmException | KeyStoreException
-            | IOException e)
+              | IOException e)
         {
-          LOGGER.log(Level.SEVERE,"Failed to set SSLContext for http client. Will try without.", e);
+          LOGGER.log(Level.SEVERE, "Failed to set SSLContext for http client. Will try without.", e);
         }
       }
     }
     return clientBuilder;
   }
 
+  /**
+   * Posts the given string to elastic search.
+   * 
+   * @param data
+   *          The data to post
+   * @throws IOException
+   */
   public void push(String data) throws IOException
   {
 

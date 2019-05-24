@@ -95,7 +95,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
     return data;
   }
 
-  public void sendNodeUpdate(boolean isStart) throws IOException
+  private void sendNodeUpdate(boolean isStart) throws IOException
   {
     Map<String, Object> data = createData();
     if (run != null)
