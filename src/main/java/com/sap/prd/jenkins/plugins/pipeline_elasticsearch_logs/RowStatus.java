@@ -190,4 +190,19 @@ public class RowStatus implements Comparable<RowStatus>
     return id.compareTo(o.id);
   }
 
+  @Override
+  public boolean equals(Object obj)
+  {
+    if (obj == null)
+    {
+      return false;
+    }
+    if (!(obj instanceof RowStatus))
+    {
+      return false;
+    }
+    RowStatus other = (RowStatus) obj;
+    return id.equals(other.id);
+  }
+
 }
