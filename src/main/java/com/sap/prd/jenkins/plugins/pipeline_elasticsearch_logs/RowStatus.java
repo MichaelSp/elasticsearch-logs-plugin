@@ -205,4 +205,10 @@ public class RowStatus implements Comparable<RowStatus>
     return id.equals(other.id);
   }
 
+  @Override
+  public int hashCode()
+  {
+    return id.hashCode();
+  }
+
 }
