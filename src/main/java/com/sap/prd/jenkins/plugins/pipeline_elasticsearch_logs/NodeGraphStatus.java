@@ -59,6 +59,7 @@ public class NodeGraphStatus
       }
 
     }
+    Collections.sort(updatedRows);
     return updatedRows;
   }
 
@@ -72,6 +73,7 @@ public class NodeGraphStatus
     getUpdatedRows();
     List<RowStatus> snapshot = new ArrayList<>();
     snapshot.addAll(rows.values());
+    Collections.sort(snapshot);
     return snapshot;
   }
 }

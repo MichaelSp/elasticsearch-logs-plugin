@@ -8,11 +8,14 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -27,7 +30,7 @@ import net.sf.json.JSONObject;
 
 public class ElasticSearchSender implements BuildListener, Closeable
 {
-  //private static final Logger LOGGER = Logger.getLogger(ElasticSearchSender.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(ElasticSearchSender.class.getName());
 
   private static final DateTimeFormatter UTC_MILLIS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
@@ -126,7 +129,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
       data.put("eventType", "flowGraph::" + eventPrefix + "End");
     }
 
-    Map<String, Map<String, Object>> nodes = new HashMap<>();
+    List<Map<String, Object>> nodes = new ArrayList<>();
 
     List<RowStatus> rows;
     if (run == null)
@@ -135,16 +138,25 @@ public class ElasticSearchSender implements BuildListener, Closeable
     }
     else
     {
-      rows = nodeGraphStatus.getRows();
+      if (isStart)
+      {
+        rows = Collections.emptyList();
+      }
+      else
+      {
+        rows = nodeGraphStatus.getRows();
+      }
     }
     for (RowStatus row : rows)
     {
-      nodes.put(row.getNodeId(), row.getData());
+      nodes.add(row.getData());
     }
     if (nodes.size() > 0)
     {
       data.put("nodes", nodes);
     }
+
+    LOGGER.log(Level.FINEST, "Sending data: {0}", JSONObject.fromObject(data).toString());
     getElasticSearchWriter().push(JSONObject.fromObject(data).toString());
   }
 
@@ -193,6 +205,8 @@ public class ElasticSearchSender implements BuildListener, Closeable
       {
         nodeInfo.appendNodeInfo(data);
       }
+
+      LOGGER.log(Level.FINEST, "Sending data: {0}", JSONObject.fromObject(data).toString());
       getElasticSearchWriter().push(JSONObject.fromObject(data).toString());
     }
   }

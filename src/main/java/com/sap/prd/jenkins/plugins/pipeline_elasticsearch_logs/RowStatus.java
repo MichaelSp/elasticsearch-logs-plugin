@@ -21,10 +21,11 @@ import hudson.model.Result;
  * Helper class that holds the status of row from the FlowGraphTable so we can check if the status has changed.
  *
  */
-public class RowStatus
+public class RowStatus implements Comparable<RowStatus>
 {
 
   private final String nodeId;
+  private final Integer id;
   private final String stepName;
   private final String displayName;
   private final String enclosingId;
@@ -39,6 +40,7 @@ public class RowStatus
   {
     FlowNode node = row.getNode();
     nodeId = node.getId();
+    id = Integer.parseInt(nodeId);
     stepName = ElasticSearchLogStorageFactory.getStepName(node);
     displayName = node.getDisplayName();
     enclosingId = node.getEnclosingId();
@@ -180,6 +182,12 @@ public class RowStatus
     }
 
     return Result.SUCCESS.toString();
+  }
+
+  @Override
+  public int compareTo(RowStatus o)
+  {
+    return id.compareTo(o.id);
   }
 
 }
