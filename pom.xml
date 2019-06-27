@@ -152,7 +152,7 @@
                 <artifactId>maven-hpi-plugin</artifactId>
                 <configuration>
                     <loggers>
-                        <io.jenkins.plugins.pipeline_cloudwatch_logs>FINE</io.jenkins.plugins.pipeline_cloudwatch_logs>
+                        <com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs>FINE</com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs>
                     </loggers>
                 </configuration>
             </plugin>

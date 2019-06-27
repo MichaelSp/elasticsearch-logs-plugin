@@ -1,59 +1,52 @@
-# pipeline-elasticsearch-logs-plugin
-A Jenkins plugin, that will write the logs of pipeline builds to elastic search.
-Currently this plugin is intended for JenkinsFileRunner as it is not able to display the logs in Jenkins.
+### Description
 
-# Usage
+A Jenkins plugin to send Pipeline build logs to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) instance.
 
-After installation go to **Manage Jenkins » Configure System** and configure the section **Logging to Elastic Search for Pipelines**
+This is an [implementation of JEP-210](https://github.com/jenkinsci/jep/blob/master/jep/210/README.adoc).
 
-# Events
-Besides the log lines the plugin will sent additional events with flow node information.
-The following table describes the different event types.
 
-| event type | description |
-| ----- | ----- |
-| flowGraph::buildStart | Sent once at the start of the build |
-| flowGraph::buildEnd | Sent once at the end of the build |
-| flowGraph::nodeStart | Sent once at the start of the a flow node |
-| flowGraph::nodeEnd | Sent once at the end of the a flow node |
-| buildMessage | A log line sent from the pipeline execution engine (In Jenkins these are the lines displayed in light grey) |
-| nodeMessage | A log output line sent from the execution of a flow node |
+### Requirements
 
-### Event types
-The following table lists the fields that are sent for each event and for which type of event
+ - [Jenkins](https://jenkins.io/)
+ - [Elasticsearch](https://www.elastic.co/products/elasticsearch)
 
-| Field | description | buildStart | buildEnd | nodeStart | nodeEnd | buildMessage | nodeMessage | 
-|-------|-------------|:----------:|:--------:|:----------:|:-------:| :----------: | :---------: |
-| eventType | The type of event  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| timestamp | UTC timestamp string | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| timestampMillis | tmestamp in ms since 1970-01-01 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| project | The project that is built | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| build | The build number  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| instance | The Jenkins instance  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| message | The log line | | | | | ✓ | ✓ |
-| flowNodeId | The id of the flow node | |  |  ✓ | ✓ |  | ✓ |
-| step | The name of the step | |  |  ✓ | ✓ |  | ✓ |
-| stageName | The name of the enclosing stage | |  |  ✓ | ✓ |  | ✓ |
-| stageId | The id of the enclosing stage flow node | |  |  ✓ | ✓ | | ✓ |
-| parallelBranchName | The name of the enclosing parallel branch | |  |  ✓ | ✓ |  | ✓ |
-| parallelBranchId | The id of the enclosing parallel branch flow node | |  |  ✓ | ✓ | | ✓ |
-| agent | The name of the enclosing agent (node step) | |  |  ✓ | ✓ |  | ✓ |
-| nodes | The list of flow nodes and their status |  | ✓ |  ✓ | ✓ |  | |
+### Download and Installation
 
-To reduce that amount of data sent with flowGraph node events the nodes field contains the list of flow nodes that have a changed status.
-The buildEnd event will contain the full list of flow nodes with their status.
+In your Jenkins go to **Manage Jenkins � Manage Plugins � Available** check **Pipeline Logging via Elastic Search** and press **Install without restart**
 
-#### Flow node list
-The list of flow nodes contains the following fields:
+### Configuration
 
-| Field | description |
-| ----- | -----|
-| displayName | The desription of the step as shown in the pipeline steps UI | 
-| errorMessage | The message of the Exception if the step failed | 
-| step | The name of the step | 
-| id | The id of this flow node |
-| enclosingId | The id of the enclosing flow node | 
-| status | The status of the execution of the node |
-| duration | The duration of the step | 
-| parallelBranchName | The duration of the step | 
-| stageName | The duration of the step | 
+tbd.
+
+### Limitations
+
+Currently the plugin is only able to push the logs to Elasticsearch but the way to read the logs from ElasticSearch and display in Jenkins is not yet implemented.
+The initial scope of this plugin was to use it it in a [JenkinsFileRunner](https://github.com/jenkinsci/jenkinsfile-runner) scenario.
+
+
+### Known Issues
+
+see Jenkins Jira
+
+### How to obtain support
+
+tbd.: 
+ - Link to Jira component once the plugin is officially hosted in the [JenkinsCI](https://github.com/jenkinsci) org.
+ - Link to Plugin wiki on Jenkins site where once can ask questions and see open issues
+
+
+### Contributing
+
+Please open a Pull Request in our [Github](https://github.com/jenkinsci/pipeline-elasticsearch-logs-plugin) repository.
+
+### To-Do (upcoming changes)
+
+
+
+### License
+
+The following text should appear in the license section.  
+
+Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved.
+This file is licensed under the "Apache Software License, v. 2" except as noted otherwise in the LICENSE file .�
+
