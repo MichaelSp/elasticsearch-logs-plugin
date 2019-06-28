@@ -12,7 +12,7 @@ This is an [implementation of JEP-210](https://github.com/jenkinsci/jep/blob/mas
 
 ### Download and Installation
 
-In your Jenkins go to **Manage Jenkins » Manage Plugins » Available** check **Pipeline Logging via Elastic Search** and press **Install without restart**
+In your Jenkins go to **Manage Jenkins ï¿½ Manage Plugins ï¿½ Available** check **Pipeline Logging via Elastic Search** and press **Install without restart**
 
 ### Configuration
 
@@ -20,7 +20,7 @@ tbd.
 
 ### Limitations
 
-Currently the plugin is only able to push the logs to Elasticsearch but the way to read the logs from ElasticSearch and display in Jenkins is not yet implemented.
+Currently the plugin is only able to push the logs to Elasticsearch but the way back to read the logs from ElasticSearch and display in Jenkins is not yet implemented.
 The initial scope of this plugin was to use it it in a [JenkinsFileRunner](https://github.com/jenkinsci/jenkinsfile-runner) scenario.
 
 
@@ -41,12 +41,15 @@ Please open a Pull Request in our [Github](https://github.com/jenkinsci/pipeline
 
 ### To-Do (upcoming changes)
 
-
+- Store annotations with events to be able to recover them for display in Jenkins
+- Provide a JenkinsFileRunner mode option 
+  - enabled will send additional events when nodes are started or updated to allow dynamic display of pipeline status outside of Jenkins
+  - disabled will store the annotations next to events
 
 ### License
 
 The following text should appear in the license section.  
 
 Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved.
-This file is licensed under the "Apache Software License, v. 2" except as noted otherwise in the LICENSE file .”
+This file is licensed under the "Apache Software License, v. 2" except as noted otherwise in the LICENSE file .ï¿½
 
