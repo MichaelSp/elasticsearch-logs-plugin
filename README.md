@@ -45,6 +45,7 @@ Please open a Pull Request in our [Github](https://github.com/jenkinsci/pipeline
 - Provide a JenkinsFileRunner mode option 
   - enabled will send additional events when nodes are started or updated to allow dynamic display of pipeline status outside of Jenkins
   - disabled will store the annotations next to events
+- Connection test on Jenkins configure page
 
 ### License
 

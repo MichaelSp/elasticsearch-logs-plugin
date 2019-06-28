@@ -1,11 +1,3 @@
-# pipeline-elasticsearch-logs-plugin
-A Jenkins plugin, that will write the logs of pipeline builds to elastic search.
-Currently this plugin is intended for JenkinsFileRunner as it is not able to display the logs in Jenkins.
-
-# Usage
-
-After installation go to **Manage Jenkins » Configure System** and configure the section **Logging to Elastic Search for Pipelines**
-
 # Events
 Besides the log lines the plugin will sent additional events with flow node information.
 The following table describes the different event types.
@@ -30,7 +22,7 @@ The following table lists the fields that are sent for each event and for which 
 | project | The project that is built | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | build | The build number  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | instance | The Jenkins instance  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| message | The log line | | | | | ✓ | ✓ |
+| message | The log line without annotations| | | | | ✓ | ✓ |
 | flowNodeId | The id of the flow node | |  |  ✓ | ✓ |  | ✓ |
 | step | The name of the step | |  |  ✓ | ✓ |  | ✓ |
 | stageName | The name of the enclosing stage | |  |  ✓ | ✓ |  | ✓ |
@@ -39,6 +31,7 @@ The following table lists the fields that are sent for each event and for which 
 | parallelBranchId | The id of the enclosing parallel branch flow node | |  |  ✓ | ✓ | | ✓ |
 | agent | The name of the enclosing agent (node step) | |  |  ✓ | ✓ |  | ✓ |
 | nodes | The list of flow nodes and their status |  | ✓ |  ✓ | ✓ |  | |
+| annotations | A List of annotations that were extracted from the message | | | | | ✓ | ✓ |
 
 To reduce that amount of data sent with flowGraph node events the nodes field contains the list of flow nodes that have a changed status.
 The buildEnd event will contain the full list of flow nodes with their status.
