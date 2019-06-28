@@ -4,7 +4,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,7 +21,6 @@ import javax.annotation.Nonnull;
 
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-import hudson.console.ConsoleNote;
 import hudson.console.LineTransformationOutputStream;
 import hudson.model.BuildListener;
 import hudson.model.Result;
@@ -199,9 +197,6 @@ public class ElasticSearchSender implements BuildListener, Closeable
     protected void eol(byte[] b, int len) throws IOException
     {
       Map<String, Object> data = createData();
-
-      String line = new String(b, 0, len, StandardCharsets.UTF_8);
-      line = ConsoleNote.removeNotes(line).trim();
 
       ConsoleNotes.parse(b, len, data);
       data.put("eventType", eventPrefix + "Message");

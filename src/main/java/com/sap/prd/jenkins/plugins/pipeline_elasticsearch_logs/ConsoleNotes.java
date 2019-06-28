@@ -61,7 +61,9 @@ class ConsoleNotes {
                 break;
             }
         }
+        
         String line = new String(b, 0, eol, StandardCharsets.UTF_8);
+        
         // Would be more efficient to do searches at the byte[] level, but too much bother for now,
         // especially since there is no standard library method to do offset searches like String has.
         if (!line.contains(ConsoleNote.PREAMBLE_STR)) {
