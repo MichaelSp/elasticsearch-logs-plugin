@@ -166,13 +166,17 @@ public class ElasticSearchSender implements BuildListener, Closeable
     // TODO: What happens if we have jenkins restart in between? Is the sender recreated or reloaded via CPS
     //       Maybe we should get the run by querying jenkins.
 
-    sendNodeUpdate(false);
-    logger = null;
-    writer = null;
-    
-    if (run != null)
+    try {
+      sendNodeUpdate(false);
+      logger = null;
+      writer = null;
+    }
+    finally
     {
-      ElasticSearchLogStorageFactory.get().removeNodeGraphStatus(run);
+      if (run != null)
+      {
+        ElasticSearchLogStorageFactory.get().removeNodeGraphStatus(run);
+      }
     }
   }
 

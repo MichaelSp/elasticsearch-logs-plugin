@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.uniqueid.IdStore;
@@ -57,9 +58,11 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
         if (run.isBuilding())
         {
           String runId  = IdStore.getId(run);
+          LOGGER.log(Level.FINE, "Getting NodeGraphStatus for RunID: {0}", runId);
           nodeGraphStatus = nodeGraphs.get(runId);
           if (nodeGraphStatus == null)
           {
+            LOGGER.log(Level.FINE, "Creating NodeGraphStatus for RunID: {0}", runId);
             nodeGraphStatus = new NodeGraphStatus(run);
             nodeGraphs.put(runId, nodeGraphStatus);
           }
@@ -81,6 +84,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
   public void removeNodeGraphStatus(WorkflowRun run)
   {
     String runId  = IdStore.getId(run);
+    LOGGER.log(Level.FINE, "Removing NodeGraphStatus for RunID: {0}", runId);
     nodeGraphs.remove(runId);
   }
 
