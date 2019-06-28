@@ -57,7 +57,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
         NodeGraphStatus nodeGraphStatus = null;
         if (run.isBuilding())
         {
-          String runId  = IdStore.getId(run);
+          String runId  = getUniqueRunId(run);
           LOGGER.log(Level.FINE, "Getting NodeGraphStatus for RunID: {0}", runId);
           nodeGraphStatus = nodeGraphs.get(runId);
           if (nodeGraphStatus == null)
@@ -81,6 +81,18 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     }
   }
   
+  private String getUniqueRunId(WorkflowRun run)
+  {
+    String runId = IdStore.getId(run);
+    if (runId == null)
+    {
+      IdStore.makeId(run);
+      runId = IdStore.getId(run);
+    }
+
+    return runId;
+  }
+
   public void removeNodeGraphStatus(WorkflowRun run)
   {
     String runId  = IdStore.getId(run);
