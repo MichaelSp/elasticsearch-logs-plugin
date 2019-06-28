@@ -203,7 +203,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
       String line = new String(b, 0, len, StandardCharsets.UTF_8);
       line = ConsoleNote.removeNotes(line).trim();
 
-      data.put("message", line);
+      ConsoleNotes.parse(b, len, data);
       data.put("eventType", eventPrefix + "Message");
       if (nodeInfo != null)
       {
