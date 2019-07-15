@@ -29,6 +29,7 @@ public class NodeInfo implements Serializable
   protected final String parallelBranchName;
   protected final String parallelBranchId;
   protected final String agentName;
+  protected final String displayName;
 
   public NodeInfo(FlowNode node)
   {
@@ -39,7 +40,7 @@ public class NodeInfo implements Serializable
     String stageId = null;
     String parallelBranchName = null;
     String parallelBranchId = null;
-
+    
     if (stage != null)
     {
       stageId = stage.getId();
@@ -67,6 +68,8 @@ public class NodeInfo implements Serializable
     this.stageId = stageId;
     this.parallelBranchName = parallelBranchName;
     this.parallelBranchId = parallelBranchId;
+    this.displayName = node.getDisplayName();
+
   }
 
   /**
@@ -101,6 +104,10 @@ public class NodeInfo implements Serializable
     if (agentName != null)
     {
       data.put("agent", agentName);
+    }
+    if (displayName != null)
+    {
+      data.put("displayName", displayName);
     }
   }
 
