@@ -198,7 +198,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
     {
       Map<String, Object> data = createData();
 
-      ConsoleNotes.parse(b, len, data);
+      ConsoleNotes.parse(b, len, data, config.isSaveAnnotations());
       data.put("eventType", eventPrefix + "Message");
       if (nodeInfo != null)
       {

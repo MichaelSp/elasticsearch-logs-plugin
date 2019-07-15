@@ -61,12 +61,35 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
 
   private String instanceId;
 
+  private Boolean saveAnnotations = true;
+
   @DataBoundConstructor
   public ElasticSearchConfiguration(String host, int port, String key)
   {
     this.host = host;
     this.port = port;
     this.key = key;
+  }
+  
+  protected Object readResolve()
+  {
+    if (saveAnnotations == null)
+    {
+      saveAnnotations = true;
+    }
+    
+    return this;
+  }
+
+  public boolean isSaveAnnotations()
+  {
+    return saveAnnotations;
+  }
+
+  @DataBoundSetter
+  public void setSaveAnnotations(boolean saveAnnotations)
+  {
+    this.saveAnnotations = saveAnnotations;
   }
 
   public String getInstanceId()
@@ -250,7 +273,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       throw new IOException(e);
     }
 
-    return new ElasticSearchSerializableConfiguration(uri, username, password, getKeyStoreBytes(), getEffectInstanceId());
+    return new ElasticSearchSerializableConfiguration(uri, username, password, getKeyStoreBytes(), getEffectInstanceId(), isSaveAnnotations());
   }
 
   @Extension

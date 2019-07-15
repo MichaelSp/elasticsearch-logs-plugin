@@ -36,9 +36,11 @@ public class ElasticSearchSerializableConfiguration implements Serializable
   private final URI uri;
   
   private transient KeyStore trustKeyStore;
+  
+  private final boolean saveAnnotations;
 
   public ElasticSearchSerializableConfiguration(URI uri, String username, String password,
-        byte[] keyStoreBytes, String instanceId)
+        byte[] keyStoreBytes, String instanceId, boolean saveAnnotations)
   {
     super();
     this.uri = uri;
@@ -53,6 +55,12 @@ public class ElasticSearchSerializableConfiguration implements Serializable
     {
       this.keyStoreBytes = null;
     }
+    this.saveAnnotations = saveAnnotations;
+  }
+
+  public boolean isSaveAnnotations()
+  {
+    return saveAnnotations;
   }
 
   public String getInstanceId()

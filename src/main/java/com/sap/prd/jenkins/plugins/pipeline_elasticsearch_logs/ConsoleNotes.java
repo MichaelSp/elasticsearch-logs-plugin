@@ -47,7 +47,7 @@ class ConsoleNotes {
     private static final String POSITION_KEY = "position";
     private static final String NOTE_KEY = "note";
 
-    static void parse(byte[] b, int len, Map<String, Object> data) {
+    static void parse(byte[] b, int len, Map<String, Object> data, boolean saveAnnotations) {
         assert len > 0 && len <= b.length;
         
         assert data != null;
@@ -90,7 +90,10 @@ class ConsoleNotes {
             }
             buf.append(line, pos, line.length()); // append tail
             data.put(MESSAGE_KEY, buf.toString());
-            data.put(ANNOTATIONS_KEY, annotations);
+            if (saveAnnotations)
+            {
+              data.put(ANNOTATIONS_KEY, annotations);
+            }
         }
     }
 
