@@ -30,6 +30,8 @@ import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
+import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid.DefaultRunIdProvider;
+import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid.RunIdProvider;
 
 import hudson.Extension;
 import hudson.Util;
@@ -62,6 +64,8 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
   private String instanceId;
 
   private Boolean saveAnnotations = true;
+  
+  private RunIdProvider runIdProvider;
 
   @DataBoundConstructor
   public ElasticSearchConfiguration(String host, int port, String key)
@@ -71,11 +75,26 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     this.key = key;
   }
   
+  public RunIdProvider getRunIdProvider()
+  {
+    return runIdProvider;
+  }
+
+  @DataBoundSetter
+  public void setRunIdProvider(RunIdProvider runIdProvider)
+  {
+    this.runIdProvider = runIdProvider;
+  }
+
   protected Object readResolve()
   {
     if (saveAnnotations == null)
     {
       saveAnnotations = true;
+    }
+    if (runIdProvider == null)
+    {
+      runIdProvider = new DefaultRunIdProvider();
     }
     
     return this;
