@@ -1,4 +1,4 @@
-### This is not ready for productive usage
+<h1> :exclamation: This is not ready for productive usage</h1>
 
 Configuration of the plugin may change without further notice in an incompatible way!
 
