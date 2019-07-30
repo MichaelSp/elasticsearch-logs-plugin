@@ -48,8 +48,6 @@ Please open a Pull Request in our [Github](https://github.com/jenkinsci/pipeline
 - Provide a JenkinsFileRunner mode option 
   - enabled will send additional events when nodes are started or updated to allow dynamic display of pipeline status outside of Jenkins
   - disabled will store the annotations next to events
-- Connection test on Jenkins configure page
-- Configure URL instead of host, port, key and ssl
 - Implement a reader from Elastic Search
 - Improve http connection handling
 - Implement a GraphListener to send start and end events instead of using the 

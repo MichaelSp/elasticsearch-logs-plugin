@@ -46,12 +46,10 @@ import jenkins.model.Jenkins;
 
 public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticSearchConfiguration>
 {
-  @Nonnull
   private transient String host;
 
   private transient int port;
 
-  @Nonnull
   private transient String key;
 
   private transient boolean ssl;
@@ -65,6 +63,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
 
   private Boolean saveAnnotations = true;
   
+  @Nonnull
   private String url;
 
   @DataBoundConstructor
@@ -311,13 +310,47 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       return FormValidation.ok();
     }
 
-    public FormValidation doCheckKey(@QueryParameter("value") String value)
+    public FormValidation doValidateConnection(@QueryParameter(fixEmpty = true) String url, @QueryParameter(fixEmpty = true) String credentialsId, @QueryParameter(fixEmpty = true) String certificateId)
     {
-      if (StringUtils.isBlank(value))
+     
+      String username = null;
+      String password = null;
+      if (credentialsId != null)
       {
-        return FormValidation.warning("Key must not be empty");
+        StandardUsernamePasswordCredentials credentials = getCredentials(credentialsId);
+        if (credentials != null)
+        {
+          username = credentials.getUsername();
+          password = Secret.toString(credentials.getPassword());
+        }
       }
-      return FormValidation.ok();
+      KeyStore trustStore = null;
+
+      if (!StringUtils.isBlank(certificateId))
+      {
+        StandardCertificateCredentials certificateCredentials = getCertificateCredentials(certificateId);
+        if (certificateCredentials != null)
+        {
+          trustStore = certificateCredentials.getKeyStore();
+        }
+      }
+      
+      try
+      {
+        ElasticSearchWriter writer = new ElasticSearchWriter(new URI(url), username, password);
+        writer.setTrustKeyStore(trustStore);
+        writer.testConnection();
+      }
+      catch (URISyntaxException e)
+      {
+        return FormValidation.error(e, "The URL could not be parsed.");
+      }
+      catch (IOException e)
+      {
+        return FormValidation.error(e, "Connection failed.");
+      }
+
+      return FormValidation.ok("Success");
     }
   }
 
