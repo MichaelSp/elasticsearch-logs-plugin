@@ -52,6 +52,7 @@ Please open a Pull Request in our [Github](https://github.com/jenkinsci/pipeline
 - Configure URL instead of host, port, key and ssl
 - Implement a reader from Elastic Search
 - Improve http connection handling
+- Implement a GraphListener to send start and end events instead of using the 
 
 ### License
 

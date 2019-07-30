@@ -2,8 +2,10 @@ package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -45,14 +47,14 @@ import jenkins.model.Jenkins;
 public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticSearchConfiguration>
 {
   @Nonnull
-  private String host;
+  private transient String host;
 
-  private int port;
+  private transient int port;
 
   @Nonnull
-  private String key;
+  private transient String key;
 
-  private boolean ssl;
+  private transient boolean ssl;
 
   private String certificateId;
 
@@ -62,13 +64,14 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
   private String instanceId;
 
   private Boolean saveAnnotations = true;
+  
+  private String url;
 
   @DataBoundConstructor
-  public ElasticSearchConfiguration(String host, int port, String key)
+  public ElasticSearchConfiguration(String url) throws URISyntaxException
   {
-    this.host = host;
-    this.port = port;
-    this.key = key;
+    this.url = url;
+    new URI(url);
   }
   
   protected Object readResolve()
@@ -77,8 +80,21 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     {
       saveAnnotations = true;
     }
-    
+    if (url == null)
+    {
+      String protocol = "http";
+      if (ssl)
+      {
+        protocol = "https";
+      }
+      url = protocol + "://" + host + ":" + port + "/" + key;
+    }
     return this;
+  }
+
+  public String getUrl()
+  {
+    return url;
   }
 
   public boolean isSaveAnnotations()
@@ -103,17 +119,6 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     this.instanceId = instanceId;
   }
 
-  public boolean isSsl()
-  {
-    return ssl;
-  }
-
-  @DataBoundSetter
-  public void setSsl(boolean ssl)
-  {
-    this.ssl = ssl;
-  }
-
   public String getCertificateId()
   {
     return certificateId;
@@ -123,11 +128,6 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
   public void setCertificateId(String certificateId)
   {
     this.certificateId = certificateId;
-  }
-
-  public String getKey()
-  {
-    return key;
   }
 
   @CheckForNull
@@ -142,15 +142,6 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     this.credentialsId = credentialsId;
   }
 
-  public String getHost()
-  {
-    return host;
-  }
-
-  public int getPort()
-  {
-    return port;
-  }
 
   @CheckForNull
   private StandardUsernamePasswordCredentials getCredentials()
@@ -211,6 +202,13 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     return customKeyStore;
   }
 
+  private boolean isSsl()
+  {
+    URI uri = URI.create(url);
+    String scheme = uri.getScheme();
+    return "https".equals(scheme);
+  }
+  
   private byte[] getKeyStoreBytes()
   {
     KeyStore keyStore = getCustomKeyStore();
@@ -252,21 +250,10 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       password = Secret.toString(credentials.getPassword());
     }
 
-    String key = getKey();
-    if (!key.startsWith("/"))
-    {
-      key = "/" + key;
-    }
-
     URI uri = null;
     try
     {
-      String scheme = "http";
-      if (isSsl())
-      {
-        scheme = "https";
-      }
-      uri = new URI(scheme, null, host, port, key, null, null);
+      uri = new URI(url);
     }
     catch (URISyntaxException e)
     {
@@ -300,6 +287,28 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
           .includeCurrentValue(certificateId);
 
       return model;
+    }
+
+    public FormValidation doCheckUrl(@QueryParameter("value") String value)
+    {
+      if (StringUtils.isBlank(value))
+      {
+        return FormValidation.warning("URL must not be empty");
+      }
+      try
+      {
+        URL url = new URL(value);
+        if (!url.getProtocol().equals("http") && !url.getProtocol().equals("https"))
+        {
+          return FormValidation.error("Only http/https are allowed protocols");
+        }
+        
+      }
+      catch (MalformedURLException e)
+      {
+        return FormValidation.error("URL is not well formed");
+      }
+      return FormValidation.ok();
     }
 
     public FormValidation doCheckKey(@QueryParameter("value") String value)
