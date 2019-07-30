@@ -63,7 +63,6 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
 
   private Boolean saveAnnotations = true;
   
-  @Nonnull
   private String url;
 
   @DataBoundConstructor
