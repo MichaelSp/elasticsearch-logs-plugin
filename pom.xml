@@ -17,7 +17,7 @@
         <jenkins.version>2.164.3</jenkins.version>
         <java.level>8</java.level>
         <useBeta>true</useBeta>
-        <workflow-api-plugin.version>2.34</workflow-api-plugin.version> <!-- TODO https://github.com/jenkinsci/workflow-api-plugin/pull/88 -->
+        <workflow-api-plugin.version>2.36</workflow-api-plugin.version>
     </properties>
     <name>Pipeline Logging via Elastic Search</name>
     <repositories>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-job</artifactId>
-            <version>2.29</version>
+            <version>2.33-rc961.68a8e4796630</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
