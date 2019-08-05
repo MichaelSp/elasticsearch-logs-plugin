@@ -260,6 +260,13 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     return new String(Base64.encodeBase64(id.getPublic().getEncoded()), StandardCharsets.UTF_8);
   }
 
+  /**
+   * Returns a serializable representation of the plugin configuration with credentials resolved.
+   * Reason: on remote side credentials cannot be accessed by credentialsId, same for keystore.
+   *         That's why the values are transfered to remote.
+   * @return the ElasticSearchSerializableConfiguration
+   * @throws IOException
+   */
   public ElasticSearchSerializableConfiguration getSerializableConfiguration() throws IOException
   {
     String username = null;
@@ -292,7 +299,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       throw new IOException(e);
     }
 
-    return new ElasticSearchSerializableConfiguration(uri, username, password, getKeyStoreBytes(), getEffectInstanceId(), isSaveAnnotations());
+    return new ElasticSearchSerializableConfiguration(uri, username, password, getKeyStoreBytes(), instanceId, runIdProvider, isSaveAnnotations());
   }
 
   @Extension

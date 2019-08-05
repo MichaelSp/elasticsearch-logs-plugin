@@ -91,8 +91,9 @@ public class ElasticSearchSender implements BuildListener, Closeable
     data.put("timestampMillis", date.getTime());
     data.put("project", fullName);
     data.put("build", buildId);
-    data.put("instance", config.getInstanceId());
-
+    if(run != null) {
+        data.put("runId", config.getRunIdProvider().getRunId(run, config.getInstanceId()));
+    }
     return data;
   }
 
