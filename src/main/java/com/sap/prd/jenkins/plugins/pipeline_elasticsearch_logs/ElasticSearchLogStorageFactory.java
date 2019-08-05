@@ -24,6 +24,7 @@ import hudson.ExtensionList;
 import hudson.console.AnnotatedLargeText;
 import hudson.model.BuildListener;
 import hudson.model.Queue;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 
 @Extension
@@ -81,7 +82,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     }
   }
   
-  public static String getUniqueRunId(WorkflowRun run)
+  public static String getUniqueRunId(Run<?, ?> run)
   {
     String runId = IdStore.getId(run);
     if (runId == null)
