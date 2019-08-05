@@ -1,7 +1,10 @@
 package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid;
 
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.ElasticSearchLogStorageFactory;
 
 import hudson.Extension;
 import hudson.model.Run;
@@ -24,6 +27,9 @@ public class DefaultRunIdProvider extends RunIdProvider
   {
     JSONObject data = new JSONObject();
     data.element("project", run.getParent().getFullName());
+    if (run instanceof WorkflowRun) {
+        data.element("uid", ElasticSearchLogStorageFactory.getUniqueRunId((WorkflowRun)run));
+    }
     data.element("build", run.getId());
     data.element("instance", instanceId);
     return data;

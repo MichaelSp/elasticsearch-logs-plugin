@@ -81,7 +81,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     }
   }
   
-  private String getUniqueRunId(WorkflowRun run)
+  public static String getUniqueRunId(WorkflowRun run)
   {
     String runId = IdStore.getId(run);
     if (runId == null)
