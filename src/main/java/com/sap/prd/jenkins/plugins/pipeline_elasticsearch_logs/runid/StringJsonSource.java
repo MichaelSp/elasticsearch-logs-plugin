@@ -4,26 +4,26 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import hudson.Extension;
 import hudson.model.Descriptor;
+import net.sf.json.JSONObject;
 
 public class StringJsonSource extends JsonSource
 {
-  private String jsonString;
+  private JSONObject jsonObject;
 
   @DataBoundConstructor
   public StringJsonSource(String jsonString)
   {
-    this.jsonString = jsonString;
+    this.jsonObject = JSONObject.fromObject(jsonString);
   }
 
   public String getJsonString()
   {
-    return jsonString;
+    return jsonObject.toString();
   }
 
   @Override
-  public String getJson()
-  {
-    return jsonString;
+  public JSONObject getJsonObject() {
+      return jsonObject;
   }
 
   @Extension
@@ -36,4 +36,5 @@ public class StringJsonSource extends JsonSource
       return "JSON String";
     }
   }
+
 }

@@ -5,6 +5,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import hudson.Extension;
 import hudson.model.Run;
+import net.sf.json.JSONObject;
 
 public class JsonRunIdProvider extends RunIdProvider
 {
@@ -23,9 +24,9 @@ public class JsonRunIdProvider extends RunIdProvider
   }
 
   @Override
-  public String getRunId(Run<?, ?> run, String instanceId)
+  public JSONObject getRunId(Run<?, ?> run, String instanceId)
   {
-    return jsonSource.getJson();
+    return jsonSource.getJsonObject();
   }
 
   @Extension

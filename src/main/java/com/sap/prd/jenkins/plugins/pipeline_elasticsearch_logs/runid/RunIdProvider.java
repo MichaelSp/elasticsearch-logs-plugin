@@ -6,6 +6,7 @@ import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
 
 /**
  * Each run needs to be uniquely identifiable in Elastic search.
@@ -17,7 +18,7 @@ import jenkins.model.Jenkins;
 public abstract class RunIdProvider extends AbstractDescribableImpl<RunIdProvider> implements ExtensionPoint
 {
   
-  public abstract String getRunId(Run<?, ?> run, String instanceId);
+  public abstract JSONObject getRunId(Run<?, ?> run, String instanceId);
   
   public static ExtensionList<RunIdProvider> all()
   {
