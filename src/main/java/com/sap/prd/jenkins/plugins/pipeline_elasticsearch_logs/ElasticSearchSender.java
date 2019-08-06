@@ -40,13 +40,13 @@ public class ElasticSearchSender implements BuildListener, Closeable
   protected final @CheckForNull NodeInfo nodeInfo;
 
   protected transient ElasticSearchWriter writer;
-  protected final ElasticSearchSerializableConfiguration config;
+  protected final ElasticSearchRunConfiguration config;
   protected transient @CheckForNull WorkflowRun run;
   protected String eventPrefix;
   protected transient final NodeGraphStatus nodeGraphStatus;
 
   public ElasticSearchSender(@Nonnull String fullName, @Nonnull String buildId, @CheckForNull NodeInfo nodeInfo,
-        @Nonnull ElasticSearchSerializableConfiguration config,  @CheckForNull WorkflowRun run,
+        @Nonnull ElasticSearchRunConfiguration config,  @CheckForNull WorkflowRun run,
         @Nonnull NodeGraphStatus nodeGraphStatus) throws IOException
   {
     this.fullName = fullName;

@@ -124,11 +124,11 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
   {
     private final String fullName;
     private final String buildId;
-    private ElasticSearchSerializableConfiguration config;
+    private ElasticSearchRunConfiguration config;
     private WorkflowRun run;
     private final NodeGraphStatus nodeGraphStatus;
 
-    ElasticSearchLogStorage(String fullName, String buildId, ElasticSearchSerializableConfiguration config,
+    ElasticSearchLogStorage(String fullName, String buildId, ElasticSearchRunConfiguration config,
           WorkflowRun run, NodeGraphStatus nodeGraphStatus)
     {
       this.fullName = fullName;

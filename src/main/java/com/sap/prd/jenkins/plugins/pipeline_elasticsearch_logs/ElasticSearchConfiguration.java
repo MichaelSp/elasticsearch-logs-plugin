@@ -267,7 +267,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
    * @return the ElasticSearchSerializableConfiguration
    * @throws IOException
    */
-  public ElasticSearchSerializableConfiguration getSerializableConfiguration() throws IOException
+  public ElasticSearchRunConfiguration getSerializableConfiguration() throws IOException
   {
     String username = null;
     String password = null;
@@ -299,7 +299,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       throw new IOException(e);
     }
 
-    return new ElasticSearchSerializableConfiguration(uri, username, password, getKeyStoreBytes(), instanceId, runIdProvider, isSaveAnnotations());
+    return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), instanceId, runIdProvider, isSaveAnnotations());
   }
 
   @Extension

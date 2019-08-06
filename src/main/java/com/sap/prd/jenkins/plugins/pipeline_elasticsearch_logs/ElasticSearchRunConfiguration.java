@@ -22,9 +22,9 @@ import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid.RunIdProvid
  *         That's why the values are transfered to remote.
  */
 @Restricted(NoExternalUse.class)
-public class ElasticSearchSerializableConfiguration implements Serializable
+public class ElasticSearchRunConfiguration implements Serializable
 {
-  private static final Logger LOGGER = Logger.getLogger(ElasticSearchSerializableConfiguration.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(ElasticSearchRunConfiguration.class.getName());
   
   private static final long serialVersionUID = 1L;
 
@@ -44,7 +44,7 @@ public class ElasticSearchSerializableConfiguration implements Serializable
   
   private final boolean saveAnnotations;
 
-  public ElasticSearchSerializableConfiguration(URI uri, String username, String password,
+  public ElasticSearchRunConfiguration(URI uri, String username, String password,
         byte[] keyStoreBytes, String instanceId, RunIdProvider runIdProvider, boolean saveAnnotations)
   {
     super();
