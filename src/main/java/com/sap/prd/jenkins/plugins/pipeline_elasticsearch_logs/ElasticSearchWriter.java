@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -24,11 +25,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import com.google.common.collect.Range;
 
@@ -121,6 +125,36 @@ public class ElasticSearchWriter
       }
     }
     return clientBuilder;
+  }
+  
+  @Restricted(NoExternalUse.class)
+  String testConnection() throws URISyntaxException, IOException
+  {
+    URI testUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), null, null, null);
+    HttpGet getRequest = new HttpGet(testUri);
+    String auth = getAuth();
+    if (auth != null)
+    {
+      getRequest.addHeader("Authorization", "Basic " + auth);
+    }
+    
+    try (CloseableHttpClient httpClient = getClientBuilder().build())
+    {
+      try (CloseableHttpResponse response = httpClient.execute(getRequest))
+      {
+        if (!SUCCESS_CODES.contains(response.getStatusLine().getStatusCode()))
+        {
+          String errorMessage = this.getErrorMessage(response);
+          throw new IOException(errorMessage);
+        }
+      }
+      catch (Exception e)
+      {
+        throw new IOException(e);
+      }
+    }
+    
+    return "";
   }
 
   /**

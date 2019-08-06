@@ -1,3 +1,7 @@
+<h1> :exclamation: This is not ready for productive usage</h1>
+
+Configuration of the plugin may change without further notice in an incompatible way!
+
 ### Description
 
 A Jenkins plugin to send Pipeline build logs to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) instance.
@@ -41,11 +45,12 @@ Please open a Pull Request in our [Github](https://github.com/jenkinsci/pipeline
 
 ### To-Do (upcoming changes)
 
-- Store annotations with events to be able to recover them for display in Jenkins
 - Provide a JenkinsFileRunner mode option 
   - enabled will send additional events when nodes are started or updated to allow dynamic display of pipeline status outside of Jenkins
   - disabled will store the annotations next to events
-- Connection test on Jenkins configure page
+- Implement a reader from Elastic Search
+- Improve http connection handling
+- Implement a GraphListener to send start and end events instead of using the 
 
 ### License
 
