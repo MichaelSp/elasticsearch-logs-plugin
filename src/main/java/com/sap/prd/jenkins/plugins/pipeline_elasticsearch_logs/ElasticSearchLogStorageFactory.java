@@ -19,6 +19,8 @@ import org.jenkinsci.plugins.workflow.log.LogStorageFactory;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.kohsuke.stapler.framework.io.ByteBuffer;
 
+import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid.RunIdProvider;
+
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.console.AnnotatedLargeText;
@@ -70,7 +72,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
           }
         }
 
-        return new ElasticSearchLogStorage(fullName, buildId, config.getSerializableConfiguration(), run, nodeGraphStatus);
+        return new ElasticSearchLogStorage(fullName, buildId, config.getSerializableConfiguration(), run, config.getRunIdProvider(), nodeGraphStatus);
       }
       else
       {
@@ -131,13 +133,13 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     private final NodeGraphStatus nodeGraphStatus;
     
     ElasticSearchLogStorage(String fullName, String buildId, ElasticSearchRunConfiguration config,
-          WorkflowRun run, NodeGraphStatus nodeGraphStatus)
+          WorkflowRun run, RunIdProvider runIdProvider, NodeGraphStatus nodeGraphStatus)
     {
       this.fullName = fullName;
       this.buildId = buildId;
       this.config = config;
       this.run = run;
-      this.runId = config.getRunIdProvider().getRunId(run, config.getInstanceId());
+      this.runId = runIdProvider.getRunId(run, config.getInstanceId());
       this.nodeGraphStatus = nodeGraphStatus;
     }
 

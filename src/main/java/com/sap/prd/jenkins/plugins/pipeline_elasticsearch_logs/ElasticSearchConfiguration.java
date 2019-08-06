@@ -299,7 +299,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       throw new IOException(e);
     }
 
-    return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), instanceId, runIdProvider, isSaveAnnotations());
+    return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), instanceId, isSaveAnnotations());
   }
 
   @Extension

@@ -36,8 +36,6 @@ public class ElasticSearchRunConfiguration implements Serializable
 
   private final String instanceId;
 
-  private final RunIdProvider runIdProvider;
-
   private final URI uri;
   
   private transient KeyStore trustKeyStore;
@@ -45,14 +43,13 @@ public class ElasticSearchRunConfiguration implements Serializable
   private final boolean saveAnnotations;
 
   public ElasticSearchRunConfiguration(URI uri, String username, String password,
-        byte[] keyStoreBytes, String instanceId, RunIdProvider runIdProvider, boolean saveAnnotations)
+        byte[] keyStoreBytes, String instanceId, boolean saveAnnotations)
   {
     super();
     this.uri = uri;
     this.username = username;
     this.password = password;
     this.instanceId = instanceId;
-    this.runIdProvider = runIdProvider;
     if (keyStoreBytes != null)
     {
       this.keyStoreBytes = keyStoreBytes.clone();
@@ -72,11 +69,6 @@ public class ElasticSearchRunConfiguration implements Serializable
   public String getInstanceId()
   {
     return instanceId;
-  }
-
-  public RunIdProvider getRunIdProvider()
-  {
-    return runIdProvider;
   }
 
   public URI getUri()
