@@ -72,7 +72,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
           }
         }
 
-        return new ElasticSearchLogStorage(fullName, buildId, config.getSerializableConfiguration(), run, config.getRunIdProvider(), nodeGraphStatus);
+        return new ElasticSearchLogStorage(fullName, buildId, config.getRunConfiguration(), run, config.getRunIdProvider(), nodeGraphStatus);
       }
       else
       {
