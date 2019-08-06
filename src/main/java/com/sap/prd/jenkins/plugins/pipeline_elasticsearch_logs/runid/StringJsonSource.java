@@ -8,23 +8,26 @@ import net.sf.json.JSONObject;
 
 public class StringJsonSource extends JsonSource
 {
-  private JSONObject jsonObject;
+  private transient JSONObject jsonObject;
+  
+  private final String jsonString;
 
   @DataBoundConstructor
   public StringJsonSource(String jsonString)
   {
-    jsonString = this.expand(jsonString);
     this.jsonObject = JSONObject.fromObject(jsonString);
+    this.jsonString = jsonObject.toString();
   }
 
   public String getJsonString()
   {
-    return jsonObject.toString();
+    return jsonString;
   }
 
   @Override
   public JSONObject getJsonObject() {
-      return jsonObject;
+    if(jsonObject == null) jsonObject = JSONObject.fromObject(jsonString);
+    return jsonObject;
   }
 
   @Extension

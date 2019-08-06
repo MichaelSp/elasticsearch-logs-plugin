@@ -3,6 +3,8 @@ package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -16,16 +18,23 @@ import net.sf.json.JSONObject;
 public class FileJsonSource extends JsonSource
 {
 
-  private String jsonFile;
-  private JSONObject jsonObject;
+  private static final Logger LOGGER = Logger.getLogger(FileJsonSource.class.getName());
+
+  private final String jsonFile;
+  
+  private transient JSONObject jsonObject;
 
   @DataBoundConstructor
   public FileJsonSource(String jsonFile) throws IOException, JSONException
   {
     this.jsonFile = jsonFile;
+    this.jsonObject = readFile(this.jsonFile);
+  }
+
+  private JSONObject readFile(String jsonFile2) throws IOException {
     File file = new File(jsonFile);
     String jsonString = Files.toString(file, StandardCharsets.UTF_8);
-    this.jsonObject = JSONObject.fromObject(jsonString);
+    return JSONObject.fromObject(jsonString);
   }
 
   public String getJsonFile()
@@ -36,12 +45,21 @@ public class FileJsonSource extends JsonSource
   @Override
   public String getJsonString()
   {
-      return jsonObject.toString();
+    if(jsonObject == null) getJsonObject();
+    if(jsonObject == null) return null;
+    return jsonObject.toString();
   }
 
   @Override
   public JSONObject getJsonObject() {
-      return jsonObject;
+    try {
+      if(jsonObject == null) jsonObject = readFile(jsonFile);
+    }
+    catch (IOException e) {
+      LOGGER.log(Level.WARNING, "Error whild parsing JSONFileSource json file", e);
+      return null;
+    }
+    return jsonObject;
   }
   
   @Extension
