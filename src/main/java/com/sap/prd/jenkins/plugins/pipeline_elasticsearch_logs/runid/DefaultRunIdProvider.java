@@ -17,19 +17,27 @@ import net.sf.json.JSONObject;
 public class DefaultRunIdProvider extends RunIdProvider
 {
   
+  private String instanceId;
+  
   @DataBoundConstructor
-  public DefaultRunIdProvider()
+  public DefaultRunIdProvider(String instanceId)
   {
+    this.instanceId = instanceId;
   }
+  
+  public String getInstanceId()
+  {
+    return instanceId;
+  }  
 
   @Override
-  public JSONObject getRunId(Run<?, ?> run, String instanceId)
+  public JSONObject getRunId(Run<?, ?> run)
   {
     JSONObject data = new JSONObject();
     data.element("project", run.getParent().getFullName());
     data.element("uid", ElasticSearchLogStorageFactory.getUniqueRunId(run));
     data.element("build", run.getId());
-    data.element("instance", instanceId);
+    data.element("instance", getEffectInstanceId(instanceId));
     return data;
   }
   

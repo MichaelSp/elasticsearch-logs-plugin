@@ -1,7 +1,13 @@
 package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid;
 
+import java.nio.charset.StandardCharsets;
+
+import org.apache.commons.codec.binary.Base64;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
+import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Run;
@@ -18,7 +24,7 @@ import net.sf.json.JSONObject;
 public abstract class RunIdProvider extends AbstractDescribableImpl<RunIdProvider> implements ExtensionPoint
 {
   
-  public abstract JSONObject getRunId(Run<?, ?> run, String instanceId);
+  public abstract JSONObject getRunId(Run<?, ?> run);
   
   public static ExtensionList<RunIdProvider> all()
   {
@@ -32,4 +38,15 @@ public abstract class RunIdProvider extends AbstractDescribableImpl<RunIdProvide
       
     }
   }
+  
+  protected static String getEffectInstanceId(String instanceId)
+  {
+    if (Util.fixEmptyAndTrim(instanceId) != null)
+    {
+      return instanceId;
+    }
+    InstanceIdentity id = InstanceIdentity.get();
+    return new String(Base64.encodeBase64(id.getPublic().getEncoded()), StandardCharsets.UTF_8);
+  }
+
 }

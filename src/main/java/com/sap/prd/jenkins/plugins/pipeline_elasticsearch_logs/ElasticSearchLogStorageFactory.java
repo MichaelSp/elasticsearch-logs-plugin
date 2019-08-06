@@ -139,7 +139,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
       this.buildId = buildId;
       this.config = config;
       this.run = run;
-      this.runId = runIdProvider.getRunId(run, config.getInstanceId());
+      this.runId = runIdProvider.getRunId(run);
       this.nodeGraphStatus = nodeGraphStatus;
     }
 

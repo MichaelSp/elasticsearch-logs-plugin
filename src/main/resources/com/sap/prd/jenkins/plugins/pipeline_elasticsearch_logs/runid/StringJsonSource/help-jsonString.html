@@ -1,0 +1,29 @@
+<div>
+	<p>The <b>JSON</b> Run ID provider generates the Run ID for each run based on the JSON template defined here.</p>
+
+	<p>You can use <code>$variable</code> or <code>${variable}</code> for string values. Those values will be replaced by the corresponding environment variable if it exists. It is also possible to use pipeline/job parameters.</p>
+
+	<p>Most common variables are:
+		<ul>
+			<li>JOB_NAME <i>(Jenkins native)</i></li>
+			<li>BUILD_NUMBER <i>(Jenkins native)</i></li>
+			<li>JENKINS_INSTANCE_ID <i>(injected by the plugin)</i></li>
+			<li>RUN_UID <i>(injected by the plugin)</i></li>
+		</ul>
+	</p>
+
+	<p>An example JSON string could look like this:
+<pre>
+{
+    "jenkins-instance": "${JENKINS_INSTANCE_ID}",
+    "build": {
+        "project": "${JOB_NAME}",
+        "build-number": "${BUILD_NUMBER}",
+    },
+    "branch": "$JOB_PARAMETER_BRANCH_NAME",
+    "uid: "${RUN_UID}"
+}
+</pre> 
+    </p>	
+
+</div>

@@ -1,7 +1,6 @@
 package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -11,13 +10,15 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.util.LogTaskListener;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 public class JsonRunIdProvider extends RunIdProvider
 {
+
+  private static final String JENKINS_INSTANCE_ID_KEY = "JENKINS_INSTANCE_ID";
+  private static final String RUN_UID_KEY = "RUN_UID"; //TODO
   
   private static final Logger LOGGER = Logger.getLogger(JsonRunIdProvider.class.getName());
 
@@ -35,18 +36,17 @@ public class JsonRunIdProvider extends RunIdProvider
   }
 
   @Override
-  public JSONObject getRunId(Run<?, ?> run, String instanceId)
+  public JSONObject getRunId(Run<?, ?> run)
   {
     JSONObject jsonObject = jsonSource.getJsonObject();
-    expand(jsonObject, getEnvOrEmpty(run, instanceId));
+    expand(jsonObject, getEnvOrEmpty(run));
     return jsonObject;
   }
 
-  private EnvVars getEnvOrEmpty(Run<?, ?> run, String instanceId) {
+  private EnvVars getEnvOrEmpty(Run<?, ?> run) {
+    EnvVars env = null;
     try {
-      EnvVars env = run.getEnvironment(new LogTaskListener(LOGGER, LOGGER.getLevel()));
-      env.put("instanceId", instanceId);
-      return env;
+      env = run.getEnvironment(new LogTaskListener(LOGGER, LOGGER.getLevel()));
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -54,7 +54,9 @@ public class JsonRunIdProvider extends RunIdProvider
     catch (InterruptedException e) {
       e.printStackTrace();
     }
-    return new EnvVars();
+    if(env == null) env = new EnvVars(); 
+    env.put(JENKINS_INSTANCE_ID_KEY, getEffectInstanceId(null));
+    return env;
   }
 
   /**
@@ -96,7 +98,7 @@ public class JsonRunIdProvider extends RunIdProvider
     @Override
     public String getDisplayName()
     {
-      return "JSON File";
+      return "JSON";
     }
   }
 

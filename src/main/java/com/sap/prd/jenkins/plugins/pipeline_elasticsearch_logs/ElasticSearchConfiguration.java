@@ -61,8 +61,6 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
   @CheckForNull
   private String credentialsId;
 
-  private String instanceId;
-
   private Boolean saveAnnotations = true;
   
   private RunIdProvider runIdProvider;
@@ -95,7 +93,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     }
     if (runIdProvider == null)
     {
-      runIdProvider = new DefaultRunIdProvider();
+      runIdProvider = new DefaultRunIdProvider(null);
     }
     
     if (url == null)
@@ -127,16 +125,6 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     this.saveAnnotations = saveAnnotations;
   }
 
-  public String getInstanceId()
-  {
-    return instanceId;
-  }
-
-  @DataBoundSetter
-  public void setInstanceId(String instanceId)
-  {
-    this.instanceId = instanceId;
-  }
 
   public String getCertificateId()
   {
@@ -248,16 +236,6 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     return null;
   }
 
-  private String getEffectInstanceId()
-  {
-    if (Util.fixEmptyAndTrim(instanceId) != null)
-    {
-      return instanceId;
-    }
-    InstanceIdentity id = InstanceIdentity.get();
-    return new String(Base64.encodeBase64(id.getPublic().getEncoded()), StandardCharsets.UTF_8);
-  }
-
   /**
    * Returns a serializable representation of the plugin configuration with credentials resolved.
    * Reason: on remote side credentials cannot be accessed by credentialsId, same for keystore.
@@ -286,7 +264,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       throw new IOException(e);
     }
 
-    return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), instanceId, isSaveAnnotations());
+    return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), isSaveAnnotations());
   }
 
   @Extension
