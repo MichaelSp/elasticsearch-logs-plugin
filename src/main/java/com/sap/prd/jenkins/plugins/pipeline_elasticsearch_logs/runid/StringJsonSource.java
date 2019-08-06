@@ -13,6 +13,7 @@ public class StringJsonSource extends JsonSource
   @DataBoundConstructor
   public StringJsonSource(String jsonString)
   {
+    jsonString = this.expand(jsonString);
     this.jsonObject = JSONObject.fromObject(jsonString);
   }
 

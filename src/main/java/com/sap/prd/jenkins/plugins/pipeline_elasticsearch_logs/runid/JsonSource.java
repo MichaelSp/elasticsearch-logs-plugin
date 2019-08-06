@@ -10,4 +10,8 @@ public abstract class JsonSource extends AbstractDescribableImpl<JsonSource>
 
   public abstract JSONObject getJsonObject();
   
+  protected String expand(String input) {
+    return input;
+  }
+  
 }
