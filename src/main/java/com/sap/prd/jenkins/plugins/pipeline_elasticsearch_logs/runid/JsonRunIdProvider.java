@@ -1,7 +1,9 @@
 package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -9,12 +11,16 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.util.LogTaskListener;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 public class JsonRunIdProvider extends RunIdProvider
 {
   
+  private static final Logger LOGGER = Logger.getLogger(JsonRunIdProvider.class.getName());
+
   private JsonSource jsonSource;
 
   @DataBoundConstructor
@@ -38,7 +44,7 @@ public class JsonRunIdProvider extends RunIdProvider
 
   private EnvVars getEnvOrEmpty(Run<?, ?> run, String instanceId) {
     try {
-      EnvVars env = run.getEnvironment(null);
+      EnvVars env = run.getEnvironment(new LogTaskListener(LOGGER, LOGGER.getLevel()));
       env.put("instanceId", instanceId);
       return env;
     }
