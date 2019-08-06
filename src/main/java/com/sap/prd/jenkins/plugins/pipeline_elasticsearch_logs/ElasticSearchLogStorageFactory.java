@@ -26,6 +26,7 @@ import hudson.model.BuildListener;
 import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import net.sf.json.JSONObject;
 
 @Extension
 public class ElasticSearchLogStorageFactory implements LogStorageFactory
@@ -126,8 +127,9 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     private final String buildId;
     private ElasticSearchRunConfiguration config;
     private WorkflowRun run;
+    private final JSONObject runId;
     private final NodeGraphStatus nodeGraphStatus;
-
+    
     ElasticSearchLogStorage(String fullName, String buildId, ElasticSearchRunConfiguration config,
           WorkflowRun run, NodeGraphStatus nodeGraphStatus)
     {
@@ -135,14 +137,14 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
       this.buildId = buildId;
       this.config = config;
       this.run = run;
+      this.runId = config.getRunIdProvider().getRunId(run, config.getInstanceId());
       this.nodeGraphStatus = nodeGraphStatus;
     }
 
     @Override
     public BuildListener overallListener() throws IOException, InterruptedException
     {
-
-      ElasticSearchSender sender = new ElasticSearchSender(fullName, buildId, null, config, run, nodeGraphStatus);
+      ElasticSearchSender sender = new ElasticSearchSender(fullName, buildId, null, config, run, runId, nodeGraphStatus);
       return sender;
     }
 
@@ -150,9 +152,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     public TaskListener nodeListener(FlowNode node) throws IOException, InterruptedException
     {
       NodeInfo nodeInfo = new NodeInfo(node);
-
-      return new ElasticSearchSender(fullName, buildId, nodeInfo, config, null, nodeGraphStatus);
-
+      return new ElasticSearchSender(fullName, buildId, nodeInfo, config, null, runId, nodeGraphStatus);
     }
 
     @Override

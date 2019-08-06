@@ -42,11 +42,12 @@ public class ElasticSearchSender implements BuildListener, Closeable
   protected transient ElasticSearchWriter writer;
   protected final ElasticSearchRunConfiguration config;
   protected transient @CheckForNull WorkflowRun run;
+  private final JSONObject runId;
   protected String eventPrefix;
   protected transient final NodeGraphStatus nodeGraphStatus;
 
   public ElasticSearchSender(@Nonnull String fullName, @Nonnull String buildId, @CheckForNull NodeInfo nodeInfo,
-        @Nonnull ElasticSearchRunConfiguration config,  @CheckForNull WorkflowRun run,
+        @Nonnull ElasticSearchRunConfiguration config,  @CheckForNull WorkflowRun run, @Nonnull JSONObject runId,
         @Nonnull NodeGraphStatus nodeGraphStatus) throws IOException
   {
     this.fullName = fullName;
@@ -54,6 +55,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
     this.nodeInfo = nodeInfo;
     this.config = config;
     this.run = run;
+    this.runId = runId;
     this.nodeGraphStatus = nodeGraphStatus;
     if (nodeInfo != null)
     {
@@ -91,9 +93,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
     data.put("timestampMillis", date.getTime());
     data.put("project", fullName);
     data.put("build", buildId);
-    if(run != null) {
-        data.put("runId", config.getRunIdProvider().getRunId(run, config.getInstanceId()));
-    }
+    data.put("runId", runId);
     return data;
   }
 
