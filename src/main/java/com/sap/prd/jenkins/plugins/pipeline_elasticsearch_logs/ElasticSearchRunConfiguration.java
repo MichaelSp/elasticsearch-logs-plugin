@@ -48,7 +48,7 @@ public class ElasticSearchRunConfiguration implements Serializable
   
   private final boolean saveAnnotations;
 
-  private final String runId;
+  private final String runIdJsonString;
   
   private final String uid;
 
@@ -59,7 +59,7 @@ public class ElasticSearchRunConfiguration implements Serializable
     this.uri = uri;
     this.username = username;
     this.password = password;
-    this.runId = runId.toString();
+    this.runIdJsonString = runId.toString();
     this.uid = uid;
     if (keyStoreBytes != null)
     {
@@ -115,7 +115,7 @@ public class ElasticSearchRunConfiguration implements Serializable
     Date date = new Date();
     data.put("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(UTC_MILLIS));
     data.put("timestampMillis", date.getTime());
-    data.put("runId", JSONObject.fromObject(runId));
+    data.put("runId", JSONObject.fromObject(runIdJsonString));
     data.put("uid", uid);
     return data;
   }

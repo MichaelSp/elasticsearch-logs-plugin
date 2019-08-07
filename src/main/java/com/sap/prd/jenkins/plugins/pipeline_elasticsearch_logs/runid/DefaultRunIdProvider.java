@@ -34,7 +34,6 @@ public class DefaultRunIdProvider extends RunIdProvider
   {
     JSONObject data = new JSONObject();
     data.element("project", run.getParent().getFullName());
-    data.element("uid", ElasticSearchConfiguration.getUniqueRunId(run));
     data.element("build", run.getId());
     data.element("instance", getEffectInstanceId(instanceId));
     return data;
