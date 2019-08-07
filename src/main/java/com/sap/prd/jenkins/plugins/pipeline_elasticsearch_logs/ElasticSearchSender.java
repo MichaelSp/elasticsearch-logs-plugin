@@ -4,11 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,23 +25,17 @@ public class ElasticSearchSender implements BuildListener, Closeable
   private static final long serialVersionUID = 1;
 
   private transient @CheckForNull PrintStream logger;
-  protected final String fullName;
-  protected final String buildId;
   protected final @CheckForNull NodeInfo nodeInfo;
 
   protected transient ElasticSearchWriter writer;
   protected final ElasticSearchRunConfiguration config;
-  private final JSONObject runId;
   protected String eventPrefix;
 
-  public ElasticSearchSender(@Nonnull String fullName, @Nonnull String buildId, @CheckForNull NodeInfo nodeInfo,
-        @Nonnull ElasticSearchRunConfiguration config, @Nonnull JSONObject runId) throws IOException
+  public ElasticSearchSender(@CheckForNull NodeInfo nodeInfo,
+        @Nonnull ElasticSearchRunConfiguration config) throws IOException
   {
-    this.fullName = fullName;
-    this.buildId = buildId;
     this.nodeInfo = nodeInfo;
     this.config = config;
-    this.runId = runId;
     if (nodeInfo != null)
     {
       eventPrefix = "node";
@@ -54,13 +44,23 @@ public class ElasticSearchSender implements BuildListener, Closeable
     {
       eventPrefix = "build";
     }
+    
+    if (nodeInfo != null)
+    {
+      LOGGER.log(Level.INFO, "Creating Sender for: {0}", nodeInfo.nodeId);
+    }
   }
-
+  
   @Override
   public PrintStream getLogger()
   {
     if (logger == null)
     {
+      if (nodeInfo != null)
+      {
+        LOGGER.log(Level.INFO, "Creating Logger for: {0}", nodeInfo.nodeId);
+      }
+
       try
       {
         logger = new PrintStream(new ElasticSearchOutputStream(), false, "UTF-8");
@@ -71,18 +71,6 @@ public class ElasticSearchSender implements BuildListener, Closeable
       }
     }
     return logger;
-  }
-
-  private Map<String, Object> createData()
-  {
-    Map<String, Object> data = new LinkedHashMap<>();
-    Date date = new Date();
-    data.put("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(UTC_MILLIS));
-    data.put("timestampMillis", date.getTime());
-    data.put("project", fullName);
-    data.put("build", buildId);
-    data.put("runId", runId);
-    return data;
   }
 
   @Override
@@ -99,6 +87,11 @@ public class ElasticSearchSender implements BuildListener, Closeable
   {
     if (writer == null)
     {
+      if (nodeInfo != null)
+      {
+        LOGGER.log(Level.INFO, "Creating Writer for: {0}", nodeInfo.nodeId);
+      }
+
       writer = ElasticSearchWriter.createElasticSearchWriter(config);
     }
     return writer;
@@ -109,7 +102,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
     @Override
     protected void eol(byte[] b, int len) throws IOException
     {
-      Map<String, Object> data = createData();
+      Map<String, Object> data = config.createData();
 
       ConsoleNotes.parse(b, len, data, config.isSaveAnnotations());
       data.put("eventType", eventPrefix + "Message");

@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.ElasticSearchLogStorageFactory;
+import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.ElasticSearchConfiguration;
 
 import hudson.EnvVars;
 import hudson.Extension;
@@ -58,7 +58,7 @@ public class JsonRunIdProvider extends RunIdProvider
     }
     if(env == null) env = new EnvVars(); 
     env.put(JENKINS_INSTANCE_ID_KEY, getEffectInstanceId(null));
-    env.put(RUN_UID_KEY, ElasticSearchLogStorageFactory.getUniqueRunId(run));
+    env.put(RUN_UID_KEY, ElasticSearchConfiguration.getUniqueRunId(run));
     return env;
   }
 

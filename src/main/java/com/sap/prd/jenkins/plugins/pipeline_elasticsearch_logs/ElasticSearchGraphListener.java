@@ -1,10 +1,7 @@
 package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs;
 
 import java.io.IOException;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -32,16 +29,12 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
   private static final Logger LOGGER = Logger.getLogger(ElasticSearchGraphListener.class.getName());
 
   private final ElasticSearchWriter writer;
-  private final String instanceId;
-  protected final String fullName;
-  protected final String buildId;
+  private final ElasticSearchRunConfiguration config;
 
-  public ElasticSearchGraphListener(WorkflowRun run, ElasticSearchSerializableConfiguration config) throws IOException
+  public ElasticSearchGraphListener(WorkflowRun run, ElasticSearchRunConfiguration config) throws IOException
   {
     writer = ElasticSearchWriter.createElasticSearchWriter(config);
-    instanceId = config.getInstanceId();
-    fullName = run.getParent().getFullName();
-    buildId = run.getId();
+    this.config = config;
     LOGGER.log(Level.INFO, "Initializing Graphlistener for: {0}", run.getDisplayName());
   }
 
@@ -154,13 +147,8 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
 
   private Map<String, Object> createData(FlowNode node) throws IOException
   {
-    Map<String, Object> data = new LinkedHashMap<>();
+    Map<String, Object> data = config.createData();
     Date date = new Date();
-    data.put("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(ElasticSearchSender.UTC_MILLIS));
-    data.put("timestampMillis", date.getTime());
-    data.put("project", fullName);
-    data.put("build", buildId);
-    data.put("instance", instanceId);
     List<FlowNode> predecessors = node.getParents();
     if (predecessors.size() > 0)
     {
@@ -190,6 +178,11 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
   
   private String getStatus(FlowNode node)
   {
+    if (node instanceof FlowEndNode)
+    {
+      return ((FlowEndNode) node).getResult().toString();
+    }
+    
     ErrorAction error = node.getError();
     WarningAction warning = node.getPersistentAction(WarningAction.class);
     if (error != null)

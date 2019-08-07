@@ -1,10 +1,6 @@
 package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs;
 
 import java.io.IOException;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,10 +26,10 @@ public class ElasticSearchRunListener extends RunListener<Run<?, ?>>
         return;
       }
 
-      ElasticSearchSerializableConfiguration config2 = config.getSerializableConfiguration();
+      ElasticSearchRunConfiguration config2 = config.getRunConfiguration(run);
 
       ElasticSearchWriter writer = ElasticSearchWriter.createElasticSearchWriter(config2);
-      Map<String, Object> data = createData(run, config2);
+      Map<String, Object> data = config2.createData();
 
       data.put("eventType", "buildEnd");
       Result result = run.getResult();
@@ -68,32 +64,18 @@ public class ElasticSearchRunListener extends RunListener<Run<?, ?>>
 
     try
     {
-      ElasticSearchSerializableConfiguration config2 = config.getSerializableConfiguration();
+      ElasticSearchRunConfiguration config2 = config.getRunConfiguration(run);
 
       ElasticSearchWriter writer = ElasticSearchWriter.createElasticSearchWriter(config2);
-      Map<String, Object> data = createData(run, config2);
+      Map<String, Object> data = config2.createData();
 
       data.put("eventType", "buildStart");
       writer.push(JSONObject.fromObject(data).toString());
     }
     catch (IOException e)
     {
-      LOGGER.log(Level.SEVERE, "Failed to get Executable of FlowExecution.");
+      LOGGER.log(Level.SEVERE, "Failed to get Executable of FlowExecution.", e);
     }
 
   }
-
-  private Map<String, Object> createData(Run<?, ?> run, ElasticSearchSerializableConfiguration config)
-  {
-    Map<String, Object> data = new LinkedHashMap<>();
-    Date date = new Date();
-    data.put("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(ElasticSearchSender.UTC_MILLIS));
-    data.put("timestampMillis", date.getTime());
-    data.put("project", run.getParent().getFullName());
-    data.put("build", run.getId());
-    data.put("instance", config.getInstanceId());
-
-    return data;
-  }
-
 }

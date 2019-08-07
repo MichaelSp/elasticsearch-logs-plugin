@@ -6,7 +6,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -17,10 +16,9 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
-import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.jenkinsci.plugins.uniqueid.IdStore;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -36,10 +34,10 @@ import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid.DefaultRunI
 import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid.RunIdProvider;
 
 import hudson.Extension;
-import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Item;
+import hudson.model.Run;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
@@ -76,6 +74,10 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
   
   public RunIdProvider getRunIdProvider()
   {
+    if (runIdProvider == null)
+    {
+      runIdProvider = new DefaultRunIdProvider("");
+    }
     return runIdProvider;
   }
 
@@ -93,7 +95,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     }
     if (runIdProvider == null)
     {
-      runIdProvider = new DefaultRunIdProvider(null);
+      runIdProvider = new DefaultRunIdProvider("");
     }
     
     if (url == null)
@@ -243,7 +245,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
    * @return the ElasticSearchSerializableConfiguration
    * @throws IOException
    */
-  public ElasticSearchRunConfiguration getRunConfiguration() throws IOException
+  public ElasticSearchRunConfiguration getRunConfiguration(Run<?, ?> run) throws IOException
   {
     String username = null;
     String password = null;
@@ -264,8 +266,21 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       throw new IOException(e);
     }
 
-    return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), isSaveAnnotations());
+    return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), isSaveAnnotations(), getUniqueRunId(run), getRunIdProvider().getRunId(run));
   }
+  
+  public static String getUniqueRunId(Run<?, ?> run)
+  {
+    String runId = IdStore.getId(run);
+    if (runId == null)
+    {
+      IdStore.makeId(run);
+      runId = IdStore.getId(run);
+    }
+
+    return runId;
+  }
+
 
   @Extension
   @Symbol("elasticsearch")
