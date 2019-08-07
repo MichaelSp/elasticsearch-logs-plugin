@@ -43,21 +43,16 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
       return null;
     }
 
-    final String fullName;
-    final String buildId;
     try
     {
       Queue.Executable exec = owner.getExecutable();
       if (exec instanceof WorkflowRun)
       {
         WorkflowRun run = (WorkflowRun) exec;
-        // TODO escape [:*@%] in job names using %XX URL encoding
-        fullName = run.getParent().getFullName();
-        buildId = run.getId();
         NodeGraphStatus nodeGraphStatus = null;
         if (run.isBuilding())
         {
-          String runId  = getUniqueRunId(run);
+          String runId  = ElasticSearchConfiguration.getUniqueRunId(run);
           LOGGER.log(Level.FINE, "Getting NodeGraphStatus for RunID: {0}", runId);
           nodeGraphStatus = nodeGraphs.get(runId);
           if (nodeGraphStatus == null)
@@ -68,7 +63,8 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
           }
         }
 
-        return new ElasticSearchLogStorage(fullName, buildId, config.getSerializableConfiguration(), run, nodeGraphStatus);
+        LOGGER.log(Level.INFO, "Getting LogStorage for: {0}", run.getFullDisplayName());
+        return new ElasticSearchLogStorage(config.getRunConfiguration(run), run, nodeGraphStatus);        
       }
       else
       {
@@ -81,18 +77,6 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     }
   }
   
-  private String getUniqueRunId(WorkflowRun run)
-  {
-    String runId = IdStore.getId(run);
-    if (runId == null)
-    {
-      IdStore.makeId(run);
-      runId = IdStore.getId(run);
-    }
-
-    return runId;
-  }
-
   public void removeNodeGraphStatus(WorkflowRun run)
   {
     String runId  = IdStore.getId(run);
@@ -121,27 +105,21 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
 
   private static class ElasticSearchLogStorage implements LogStorage
   {
-    private final String fullName;
-    private final String buildId;
-    private ElasticSearchSerializableConfiguration config;
+    private ElasticSearchRunConfiguration config;
     private WorkflowRun run;
     private final NodeGraphStatus nodeGraphStatus;
-
-    ElasticSearchLogStorage(String fullName, String buildId, ElasticSearchSerializableConfiguration config,
-          WorkflowRun run, NodeGraphStatus nodeGraphStatus)
+    
+    ElasticSearchLogStorage(ElasticSearchRunConfiguration config, WorkflowRun run, NodeGraphStatus nodeGraphStatus)
     {
-      this.fullName = fullName;
-      this.buildId = buildId;
       this.config = config;
       this.run = run;
       this.nodeGraphStatus = nodeGraphStatus;
     }
-
+    
     @Override
     public BuildListener overallListener() throws IOException, InterruptedException
     {
-
-      ElasticSearchSender sender = new ElasticSearchSender(fullName, buildId, null, config, run, nodeGraphStatus);
+      ElasticSearchSender sender = new ElasticSearchSender(null, config, run, nodeGraphStatus);
       return sender;
     }
 
@@ -149,9 +127,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     public TaskListener nodeListener(FlowNode node) throws IOException, InterruptedException
     {
       NodeInfo nodeInfo = new NodeInfo(node);
-
-      return new ElasticSearchSender(fullName, buildId, nodeInfo, config, null, nodeGraphStatus);
-
+      return new ElasticSearchSender(nodeInfo, config, null, nodeGraphStatus);
     }
 
     @Override

@@ -21,6 +21,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.jenkinsci.plugins.uniqueid.IdStore;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -32,12 +33,15 @@ import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.matchers.IdMatcher;
+import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid.DefaultRunIdProvider;
+import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid.RunIdProvider;
 
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Item;
+import hudson.model.Run;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
@@ -59,10 +63,10 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
   @CheckForNull
   private String credentialsId;
 
-  private String instanceId;
-
   private Boolean saveAnnotations = true;
   
+  private RunIdProvider runIdProvider;
+
   private String url;
 
   @DataBoundConstructor
@@ -72,12 +76,28 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     new URI(url);
   }
   
+  public RunIdProvider getRunIdProvider()
+  {
+    return runIdProvider;
+  }
+
+  @DataBoundSetter
+  public void setRunIdProvider(RunIdProvider runIdProvider)
+  {
+    this.runIdProvider = runIdProvider;
+  }
+
   protected Object readResolve()
   {
     if (saveAnnotations == null)
     {
       saveAnnotations = true;
     }
+    if (runIdProvider == null)
+    {
+      runIdProvider = new DefaultRunIdProvider(null);
+    }
+    
     if (url == null)
     {
       String protocol = "http";
@@ -87,6 +107,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       }
       url = protocol + "://" + host + ":" + port + "/" + key;
     }
+
     return this;
   }
 
@@ -106,16 +127,6 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     this.saveAnnotations = saveAnnotations;
   }
 
-  public String getInstanceId()
-  {
-    return instanceId;
-  }
-
-  @DataBoundSetter
-  public void setInstanceId(String instanceId)
-  {
-    this.instanceId = instanceId;
-  }
 
   public String getCertificateId()
   {
@@ -227,17 +238,14 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
     return null;
   }
 
-  private String getEffectInstanceId()
-  {
-    if (Util.fixEmptyAndTrim(instanceId) != null)
-    {
-      return instanceId;
-    }
-    InstanceIdentity id = InstanceIdentity.get();
-    return new String(Base64.encodeBase64(id.getPublic().getEncoded()), StandardCharsets.UTF_8);
-  }
-
-  public ElasticSearchSerializableConfiguration getSerializableConfiguration() throws IOException
+  /**
+   * Returns a serializable representation of the plugin configuration with credentials resolved.
+   * Reason: on remote side credentials cannot be accessed by credentialsId, same for keystore.
+   *         That's why the values are transfered to remote.
+   * @return the ElasticSearchSerializableConfiguration
+   * @throws IOException
+   */
+  public ElasticSearchRunConfiguration getRunConfiguration(Run<?, ?> run) throws IOException
   {
     String username = null;
     String password = null;
@@ -258,9 +266,21 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       throw new IOException(e);
     }
 
-    return new ElasticSearchSerializableConfiguration(uri, username, password, getKeyStoreBytes(), getEffectInstanceId(), isSaveAnnotations());
+    return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), isSaveAnnotations(), getUniqueRunId(run), getRunIdProvider().getRunId(run));
   }
 
+  public static String getUniqueRunId(Run<?, ?> run)
+  {
+    String runId = IdStore.getId(run);
+    if (runId == null)
+    {
+      IdStore.makeId(run);
+      runId = IdStore.getId(run);
+    }
+
+     return runId;
+  }
+  
   @Extension
   @Symbol("elasticsearch")
   public static class DescriptorImpl extends Descriptor<ElasticSearchConfiguration>

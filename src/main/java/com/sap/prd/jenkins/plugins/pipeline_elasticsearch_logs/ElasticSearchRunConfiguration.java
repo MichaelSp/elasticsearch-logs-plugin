@@ -8,21 +8,32 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
+import net.sf.json.JSONObject;
+
 /**
  * A serializable representation of the plugin configuration with credentials resolved.
- *  
+ * Reason: on remote side credentials cannot be accessed by credentialsId, same for keystore.
+ *         That's why the values are transfered to remote.
  */
 @Restricted(NoExternalUse.class)
-public class ElasticSearchSerializableConfiguration implements Serializable
+public class ElasticSearchRunConfiguration implements Serializable
 {
-  private static final Logger LOGGER = Logger.getLogger(ElasticSearchSerializableConfiguration.class.getName());
-  
+  private static final Logger LOGGER = Logger.getLogger(ElasticSearchRunConfiguration.class.getName());
+
+  private static final DateTimeFormatter UTC_MILLIS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+
   private static final long serialVersionUID = 1L;
 
   private final String username;
@@ -31,22 +42,25 @@ public class ElasticSearchSerializableConfiguration implements Serializable
 
   private final byte[] keyStoreBytes;
 
-  private final String instanceId;
-  
   private final URI uri;
   
   private transient KeyStore trustKeyStore;
   
   private final boolean saveAnnotations;
 
-  public ElasticSearchSerializableConfiguration(URI uri, String username, String password,
-        byte[] keyStoreBytes, String instanceId, boolean saveAnnotations)
+  private final String runIdJsonString;
+  
+  private final String uid;
+
+  public ElasticSearchRunConfiguration(URI uri, String username, String password,
+        byte[] keyStoreBytes, boolean saveAnnotations, String uid, JSONObject runId)
   {
     super();
     this.uri = uri;
     this.username = username;
     this.password = password;
-    this.instanceId = instanceId;
+    this.runIdJsonString = runId.toString();
+    this.uid = uid;
     if (keyStoreBytes != null)
     {
       this.keyStoreBytes = keyStoreBytes.clone();
@@ -61,11 +75,6 @@ public class ElasticSearchSerializableConfiguration implements Serializable
   public boolean isSaveAnnotations()
   {
     return saveAnnotations;
-  }
-
-  public String getInstanceId()
-  {
-    return instanceId;
   }
 
   public URI getUri()
@@ -98,6 +107,17 @@ public class ElasticSearchSerializableConfiguration implements Serializable
       }
     }
     return trustKeyStore;
+  }
+
+  public Map<String, Object> createData()
+  {
+    Map<String, Object> data = new LinkedHashMap<>();
+    Date date = new Date();
+    data.put("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(UTC_MILLIS));
+    data.put("timestampMillis", date.getTime());
+    data.put("runId", JSONObject.fromObject(runIdJsonString));
+    data.put("uid", uid);
+    return data;
   }
 
 }
