@@ -22,7 +22,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
   private static final long serialVersionUID = 1;
 
   private transient @CheckForNull PrintStream logger;
-  protected final @CheckForNull NodeInfo nodeInfo;
+  private final @CheckForNull NodeInfo nodeInfo;
 
   protected transient ElasticSearchWriter writer;
   protected final ElasticSearchRunConfiguration config;
@@ -62,9 +62,6 @@ public class ElasticSearchSender implements BuildListener, Closeable
   @Override
   public void close() throws IOException
   {
-    // TODO: What happens if we have jenkins restart in between? Is the sender recreated or reloaded via CPS
-    //       Maybe we should get the run by querying jenkins.
-
     logger = null;
     writer = null;
   }
@@ -87,6 +84,10 @@ public class ElasticSearchSender implements BuildListener, Closeable
 
       ConsoleNotes.parse(b, len, data, config.isSaveAnnotations());
       data.put("eventType", eventPrefix + "Message");
+      if (nodeInfo != null)
+      {
+        nodeInfo.appendNodeInfo(data);
+      }
 
       LOGGER.log(Level.FINEST, "Sending data: {0}", JSONObject.fromObject(data).toString());
       getElasticSearchWriter().push(JSONObject.fromObject(data).toString());
