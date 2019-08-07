@@ -268,7 +268,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
 
     return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), isSaveAnnotations(), getUniqueRunId(run), getRunIdProvider().getRunId(run));
   }
-  
+
   public static String getUniqueRunId(Run<?, ?> run)
   {
     String runId = IdStore.getId(run);
@@ -278,10 +278,9 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       runId = IdStore.getId(run);
     }
 
-    return runId;
+     return runId;
   }
-
-
+  
   @Extension
   @Symbol("elasticsearch")
   public static class DescriptorImpl extends Descriptor<ElasticSearchConfiguration>

@@ -69,7 +69,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     {
       this.config = config;
     }
-
+    
     @Override
     public BuildListener overallListener() throws IOException, InterruptedException
     {

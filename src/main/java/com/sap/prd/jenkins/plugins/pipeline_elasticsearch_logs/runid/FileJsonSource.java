@@ -7,11 +7,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import com.google.common.io.Files;
 
 import hudson.Extension;
 import hudson.model.Descriptor;
+import hudson.util.FormValidation;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
@@ -31,8 +33,8 @@ public class FileJsonSource extends JsonSource
     this.jsonObject = readFile(this.jsonFile);
   }
 
-  private JSONObject readFile(String jsonFile2) throws IOException {
-    File file = new File(jsonFile);
+  private JSONObject readFile(String filePath) throws IOException {
+    File file = new File(filePath);
     String jsonString = Files.toString(file, StandardCharsets.UTF_8);
     return JSONObject.fromObject(jsonString);
   }
@@ -71,6 +73,24 @@ public class FileJsonSource extends JsonSource
     {
       return "JSON file";
     }
+
+    public FormValidation doCheckJsonFile(@QueryParameter("value") String value)
+    {
+      return doValidateJSON(value);
+    }    
+
+    public FormValidation doValidateJSON(@QueryParameter(fixEmpty = true) String jsonFile)
+    {
+      String jsonString;
+      try {
+        File file = new File(jsonFile);
+        jsonString = Files.toString(file, StandardCharsets.UTF_8);
+      } catch(Exception e) {
+        return FormValidation.error(e, "The JSON file could not be read");
+      }
+      return validateJSONString(jsonString);
+    }
+    
   }
 
 }

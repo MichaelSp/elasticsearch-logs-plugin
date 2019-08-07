@@ -4,7 +4,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,8 +19,6 @@ public class ElasticSearchSender implements BuildListener, Closeable
 {
   private static final Logger LOGGER = Logger.getLogger(ElasticSearchSender.class.getName());
 
-  static final DateTimeFormatter UTC_MILLIS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-
   private static final long serialVersionUID = 1;
 
   private transient @CheckForNull PrintStream logger;
@@ -31,8 +28,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
   protected final ElasticSearchRunConfiguration config;
   protected String eventPrefix;
 
-  public ElasticSearchSender(@CheckForNull NodeInfo nodeInfo,
-        @Nonnull ElasticSearchRunConfiguration config) throws IOException
+  public ElasticSearchSender(@CheckForNull NodeInfo nodeInfo, @Nonnull ElasticSearchRunConfiguration config) throws IOException
   {
     this.nodeInfo = nodeInfo;
     this.config = config;

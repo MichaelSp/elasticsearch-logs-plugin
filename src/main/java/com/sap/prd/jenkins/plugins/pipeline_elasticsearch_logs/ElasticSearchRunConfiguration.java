@@ -31,7 +31,7 @@ import net.sf.json.JSONObject;
 public class ElasticSearchRunConfiguration implements Serializable
 {
   private static final Logger LOGGER = Logger.getLogger(ElasticSearchRunConfiguration.class.getName());
-  
+
   private static final DateTimeFormatter UTC_MILLIS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
   private static final long serialVersionUID = 1L;
@@ -48,10 +48,9 @@ public class ElasticSearchRunConfiguration implements Serializable
   
   private final boolean saveAnnotations;
   
-  private final String runId;
-  
   private final String uid;
-  
+
+  private final String runIdJsonString;
 
   public ElasticSearchRunConfiguration(URI uri, String username, String password,
         byte[] keyStoreBytes, boolean saveAnnotations, String uid, JSONObject runId)
@@ -60,7 +59,7 @@ public class ElasticSearchRunConfiguration implements Serializable
     this.uri = uri;
     this.username = username;
     this.password = password;
-    this.runId = runId.toString();
+    this.runIdJsonString = runId.toString();
     this.uid = uid;
     if (keyStoreBytes != null)
     {
@@ -116,10 +115,9 @@ public class ElasticSearchRunConfiguration implements Serializable
     Date date = new Date();
     data.put("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(UTC_MILLIS));
     data.put("timestampMillis", date.getTime());
-    data.put("runId", JSONObject.fromObject(runId));
+    data.put("runId", JSONObject.fromObject(runIdJsonString));
     data.put("uid", uid);
     return data;
   }
-  
 
 }
