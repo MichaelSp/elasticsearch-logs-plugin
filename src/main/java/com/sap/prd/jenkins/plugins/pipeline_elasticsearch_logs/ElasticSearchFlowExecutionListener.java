@@ -35,7 +35,7 @@ public class ElasticSearchFlowExecutionListener extends FlowExecutionListener
           return;
         }
 
-        ElasticSearchGraphListener graphListener = new ElasticSearchGraphListener((WorkflowRun) exec, config);
+        ElasticSearchGraphListener graphListener = new ElasticSearchGraphListener(config);
         execution.addListener(graphListener);
       }
     }

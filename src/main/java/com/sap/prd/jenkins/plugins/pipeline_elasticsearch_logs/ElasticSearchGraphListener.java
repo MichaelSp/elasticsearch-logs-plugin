@@ -16,7 +16,6 @@ import org.jenkinsci.plugins.workflow.graph.BlockStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.graph.FlowStartNode;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException;
 
 import hudson.model.Result;
@@ -30,7 +29,7 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
   private final ElasticSearchWriter writer;
   private final ElasticSearchRunConfiguration config;
 
-  public ElasticSearchGraphListener(WorkflowRun run, ElasticSearchRunConfiguration config) throws IOException
+  public ElasticSearchGraphListener(ElasticSearchRunConfiguration config) throws IOException
   {
     writer = ElasticSearchWriter.createElasticSearchWriter(config);
     this.config = config;
