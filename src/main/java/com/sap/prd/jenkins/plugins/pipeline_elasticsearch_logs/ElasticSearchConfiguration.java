@@ -21,6 +21,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.jenkinsci.plugins.uniqueid.IdStore;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -40,6 +41,7 @@ import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Item;
+import hudson.model.Run;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
@@ -243,7 +245,7 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
    * @return the ElasticSearchSerializableConfiguration
    * @throws IOException
    */
-  public ElasticSearchRunConfiguration getRunConfiguration() throws IOException
+  public ElasticSearchRunConfiguration getRunConfiguration(Run<?, ?> run) throws IOException
   {
     String username = null;
     String password = null;
@@ -264,9 +266,21 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
       throw new IOException(e);
     }
 
-    return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), isSaveAnnotations());
+    return new ElasticSearchRunConfiguration(uri, username, password, getKeyStoreBytes(), isSaveAnnotations(), getUniqueRunId(run), getRunIdProvider().getRunId(run));
   }
 
+  public static String getUniqueRunId(Run<?, ?> run)
+  {
+    String runId = IdStore.getId(run);
+    if (runId == null)
+    {
+      IdStore.makeId(run);
+      runId = IdStore.getId(run);
+    }
+
+     return runId;
+  }
+  
   @Extension
   @Symbol("elasticsearch")
   public static class DescriptorImpl extends Descriptor<ElasticSearchConfiguration>

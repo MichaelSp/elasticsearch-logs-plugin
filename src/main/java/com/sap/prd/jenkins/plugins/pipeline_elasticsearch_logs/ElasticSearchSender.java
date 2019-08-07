@@ -4,13 +4,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -30,32 +25,22 @@ public class ElasticSearchSender implements BuildListener, Closeable
 {
   private static final Logger LOGGER = Logger.getLogger(ElasticSearchSender.class.getName());
 
-  private static final DateTimeFormatter UTC_MILLIS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-
   private static final long serialVersionUID = 1;
 
   private transient @CheckForNull PrintStream logger;
-  protected final String fullName;
-  protected final String buildId;
   protected final @CheckForNull NodeInfo nodeInfo;
 
   protected transient ElasticSearchWriter writer;
   protected final ElasticSearchRunConfiguration config;
   protected transient @CheckForNull WorkflowRun run;
-  private final JSONObject runId;
   protected String eventPrefix;
   protected transient final NodeGraphStatus nodeGraphStatus;
 
-  public ElasticSearchSender(@Nonnull String fullName, @Nonnull String buildId, @CheckForNull NodeInfo nodeInfo,
-        @Nonnull ElasticSearchRunConfiguration config,  @CheckForNull WorkflowRun run, @Nonnull JSONObject runId,
-        @Nonnull NodeGraphStatus nodeGraphStatus) throws IOException
+  public ElasticSearchSender(@CheckForNull NodeInfo nodeInfo, @Nonnull ElasticSearchRunConfiguration config,  @CheckForNull WorkflowRun run, @Nonnull NodeGraphStatus nodeGraphStatus) throws IOException
   {
-    this.fullName = fullName;
-    this.buildId = buildId;
     this.nodeInfo = nodeInfo;
     this.config = config;
     this.run = run;
-    this.runId = runId;
     this.nodeGraphStatus = nodeGraphStatus;
     if (nodeInfo != null)
     {
@@ -85,19 +70,9 @@ public class ElasticSearchSender implements BuildListener, Closeable
     return logger;
   }
 
-  private Map<String, Object> createData()
-  {
-    Map<String, Object> data = new LinkedHashMap<>();
-    Date date = new Date();
-    data.put("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(UTC_MILLIS));
-    data.put("timestampMillis", date.getTime());
-    data.put("runId", runId);
-    return data;
-  }
-
   private void sendNodeUpdate(boolean isStart) throws IOException
   {
-    Map<String, Object> data = createData();
+    Map<String, Object> data = config.createData();
     if (run != null)
     {
       Result result = run.getResult();
@@ -195,7 +170,7 @@ public class ElasticSearchSender implements BuildListener, Closeable
     @Override
     protected void eol(byte[] b, int len) throws IOException
     {
-      Map<String, Object> data = createData();
+      Map<String, Object> data = config.createData();
 
       ConsoleNotes.parse(b, len, data, config.isSaveAnnotations());
       data.put("eventType", eventPrefix + "Message");

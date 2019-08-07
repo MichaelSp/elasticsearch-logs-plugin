@@ -19,16 +19,12 @@ import org.jenkinsci.plugins.workflow.log.LogStorageFactory;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.kohsuke.stapler.framework.io.ByteBuffer;
 
-import com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs.runid.RunIdProvider;
-
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.console.AnnotatedLargeText;
 import hudson.model.BuildListener;
 import hudson.model.Queue;
-import hudson.model.Run;
 import hudson.model.TaskListener;
-import net.sf.json.JSONObject;
 
 @Extension
 public class ElasticSearchLogStorageFactory implements LogStorageFactory
@@ -47,21 +43,16 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
       return null;
     }
 
-    final String fullName;
-    final String buildId;
     try
     {
       Queue.Executable exec = owner.getExecutable();
       if (exec instanceof WorkflowRun)
       {
         WorkflowRun run = (WorkflowRun) exec;
-        // TODO escape [:*@%] in job names using %XX URL encoding
-        fullName = run.getParent().getFullName();
-        buildId = run.getId();
         NodeGraphStatus nodeGraphStatus = null;
         if (run.isBuilding())
         {
-          String runId  = getUniqueRunId(run);
+          String runId  = ElasticSearchConfiguration.getUniqueRunId(run);
           LOGGER.log(Level.FINE, "Getting NodeGraphStatus for RunID: {0}", runId);
           nodeGraphStatus = nodeGraphs.get(runId);
           if (nodeGraphStatus == null)
@@ -72,7 +63,8 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
           }
         }
 
-        return new ElasticSearchLogStorage(fullName, buildId, config.getRunConfiguration(), run, config.getRunIdProvider(), nodeGraphStatus);
+        LOGGER.log(Level.INFO, "Getting LogStorage for: {0}", run.getFullDisplayName());
+        return new ElasticSearchLogStorage(config.getRunConfiguration(run), run, nodeGraphStatus);        
       }
       else
       {
@@ -85,18 +77,6 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     }
   }
   
-  public static String getUniqueRunId(Run<?, ?> run)
-  {
-    String runId = IdStore.getId(run);
-    if (runId == null)
-    {
-      IdStore.makeId(run);
-      runId = IdStore.getId(run);
-    }
-
-    return runId;
-  }
-
   public void removeNodeGraphStatus(WorkflowRun run)
   {
     String runId  = IdStore.getId(run);
@@ -125,28 +105,21 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
 
   private static class ElasticSearchLogStorage implements LogStorage
   {
-    private final String fullName;
-    private final String buildId;
     private ElasticSearchRunConfiguration config;
     private WorkflowRun run;
-    private final JSONObject runId;
     private final NodeGraphStatus nodeGraphStatus;
     
-    ElasticSearchLogStorage(String fullName, String buildId, ElasticSearchRunConfiguration config,
-          WorkflowRun run, RunIdProvider runIdProvider, NodeGraphStatus nodeGraphStatus)
+    ElasticSearchLogStorage(ElasticSearchRunConfiguration config, WorkflowRun run, NodeGraphStatus nodeGraphStatus)
     {
-      this.fullName = fullName;
-      this.buildId = buildId;
       this.config = config;
       this.run = run;
-      this.runId = runIdProvider.getRunId(run);
       this.nodeGraphStatus = nodeGraphStatus;
     }
-
+    
     @Override
     public BuildListener overallListener() throws IOException, InterruptedException
     {
-      ElasticSearchSender sender = new ElasticSearchSender(fullName, buildId, null, config, run, runId, nodeGraphStatus);
+      ElasticSearchSender sender = new ElasticSearchSender(null, config, run, nodeGraphStatus);
       return sender;
     }
 
@@ -154,7 +127,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     public TaskListener nodeListener(FlowNode node) throws IOException, InterruptedException
     {
       NodeInfo nodeInfo = new NodeInfo(node);
-      return new ElasticSearchSender(fullName, buildId, nodeInfo, config, null, runId, nodeGraphStatus);
+      return new ElasticSearchSender(nodeInfo, config, null, nodeGraphStatus);
     }
 
     @Override
