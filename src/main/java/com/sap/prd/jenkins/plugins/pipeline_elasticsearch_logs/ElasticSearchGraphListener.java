@@ -1,7 +1,6 @@
 package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -35,13 +34,11 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
   {
     writer = ElasticSearchWriter.createElasticSearchWriter(config);
     this.config = config;
-    LOGGER.log(Level.INFO, "Initializing Graphlistener for: {0}", run.getDisplayName());
   }
 
   @Override
   public void onNewHead(FlowNode node)
   {
-    LOGGER.log(Level.INFO, node.getId() + ":" + node.getDisplayName());
 
     try
     {
@@ -51,9 +48,9 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
         {
           sendAtomNodeEnd(parent, node);
         }
-        else if (node instanceof BlockEndNode)
+        else if (parent instanceof BlockEndNode)
         {
-          sendNodeEnd(parent);
+          sendNodeEnd((BlockEndNode<?>)parent);
         }
       }
       
@@ -63,7 +60,7 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
       }
       if (node instanceof FlowEndNode)
       {
-        sendNodeEnd(node);
+        sendNodeEnd((FlowEndNode)node);
       }
     }
     catch (IOException e)
@@ -113,11 +110,11 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
     writer.push(JSONObject.fromObject(data).toString());
   }
 
-  private void sendNodeEnd(FlowNode node) throws IOException
+  private void sendNodeEnd(BlockEndNode<?> node) throws IOException
   {
     Map<String, Object> data = createData(node);
     data.put("eventType", getEventType(node));
-    FlowNode startNode = ((BlockEndNode<?>) node).getStartNode();
+    FlowNode startNode = node.getStartNode();
     data.put("startId", startNode.getId());
 
     data.put("result", getStatus(node));
@@ -148,7 +145,6 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
   private Map<String, Object> createData(FlowNode node) throws IOException
   {
     Map<String, Object> data = config.createData();
-    Date date = new Date();
     List<FlowNode> predecessors = node.getParents();
     if (predecessors.size() > 0)
     {

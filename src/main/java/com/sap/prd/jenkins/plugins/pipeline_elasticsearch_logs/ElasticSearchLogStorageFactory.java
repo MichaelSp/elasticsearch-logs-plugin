@@ -30,20 +30,20 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
   @Override
   public LogStorage forBuild(FlowExecutionOwner owner)
   {
-    ElasticSearchConfiguration config = ElasticSearchGlobalConfiguration.get().getElasticSearch();
-    if (config == null)
-    {
-      return null;
-    }
 
     try
     {
       Queue.Executable exec = owner.getExecutable();
       if (exec instanceof WorkflowRun)
       {
+        ElasticSearchRunConfiguration config = ElasticSearchGlobalConfiguration.getRunConfiguration((WorkflowRun) exec);
+        if (config == null)
+        {
+          return null;
+        }
         WorkflowRun run = (WorkflowRun) exec;
-        LOGGER.log(Level.INFO, "Getting LogStorage for: {0}", run.getFullDisplayName());
-        return new ElasticSearchLogStorage(config.getRunConfiguration(run));
+        LOGGER.log(Level.FINER, "Getting LogStorage for: {0}", run.getFullDisplayName());
+        return new ElasticSearchLogStorage(config);
       }
       else
       {

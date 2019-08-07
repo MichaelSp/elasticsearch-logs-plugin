@@ -44,11 +44,6 @@ public class ElasticSearchSender implements BuildListener, Closeable
     {
       eventPrefix = "build";
     }
-    
-    if (nodeInfo != null)
-    {
-      LOGGER.log(Level.INFO, "Creating Sender for: {0}", nodeInfo.nodeId);
-    }
   }
   
   @Override
@@ -56,11 +51,6 @@ public class ElasticSearchSender implements BuildListener, Closeable
   {
     if (logger == null)
     {
-      if (nodeInfo != null)
-      {
-        LOGGER.log(Level.INFO, "Creating Logger for: {0}", nodeInfo.nodeId);
-      }
-
       try
       {
         logger = new PrintStream(new ElasticSearchOutputStream(), false, "UTF-8");
@@ -87,11 +77,6 @@ public class ElasticSearchSender implements BuildListener, Closeable
   {
     if (writer == null)
     {
-      if (nodeInfo != null)
-      {
-        LOGGER.log(Level.INFO, "Creating Writer for: {0}", nodeInfo.nodeId);
-      }
-
       writer = ElasticSearchWriter.createElasticSearchWriter(config);
     }
     return writer;
@@ -106,10 +91,6 @@ public class ElasticSearchSender implements BuildListener, Closeable
 
       ConsoleNotes.parse(b, len, data, config.isSaveAnnotations());
       data.put("eventType", eventPrefix + "Message");
-      if (nodeInfo != null)
-      {
-        nodeInfo.appendNodeInfo(data);
-      }
 
       LOGGER.log(Level.FINEST, "Sending data: {0}", JSONObject.fromObject(data).toString());
       getElasticSearchWriter().push(JSONObject.fromObject(data).toString());

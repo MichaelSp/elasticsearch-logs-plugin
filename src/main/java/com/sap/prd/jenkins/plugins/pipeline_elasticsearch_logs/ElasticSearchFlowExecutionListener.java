@@ -23,17 +23,19 @@ public class ElasticSearchFlowExecutionListener extends FlowExecutionListener
 
     try
     {
-      ElasticSearchConfiguration config = ElasticSearchGlobalConfiguration.get().getElasticSearch();
-
-      if (config == null)
-      {
-        return;
-      }
 
       Queue.Executable exec = execution.getOwner().getExecutable();
       if (exec instanceof WorkflowRun)
       {
-        ElasticSearchGraphListener graphListener = new ElasticSearchGraphListener((WorkflowRun) exec, config.getRunConfiguration((WorkflowRun) exec));
+
+        ElasticSearchRunConfiguration config = ElasticSearchGlobalConfiguration.getRunConfiguration((WorkflowRun) exec);
+
+        if (config == null)
+        {
+          return;
+        }
+
+        ElasticSearchGraphListener graphListener = new ElasticSearchGraphListener((WorkflowRun) exec, config);
         execution.addListener(graphListener);
       }
     }

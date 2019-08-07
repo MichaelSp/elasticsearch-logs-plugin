@@ -20,16 +20,14 @@ public class ElasticSearchRunListener extends RunListener<Run<?, ?>>
   {
     try
     {
-      ElasticSearchConfiguration config = ElasticSearchGlobalConfiguration.get().getElasticSearch();
+      ElasticSearchRunConfiguration config = ElasticSearchGlobalConfiguration.getRunConfiguration(run);
       if (config == null)
       {
         return;
       }
 
-      ElasticSearchRunConfiguration config2 = config.getRunConfiguration(run);
-
-      ElasticSearchWriter writer = ElasticSearchWriter.createElasticSearchWriter(config2);
-      Map<String, Object> data = config2.createData();
+      ElasticSearchWriter writer = ElasticSearchWriter.createElasticSearchWriter(config);
+      Map<String, Object> data = config.createData();
 
       data.put("eventType", "buildEnd");
       Result result = run.getResult();
@@ -55,19 +53,18 @@ public class ElasticSearchRunListener extends RunListener<Run<?, ?>>
   @Override
   public void onInitialize(Run<?, ?> run)
   {
-    ElasticSearchConfiguration config = ElasticSearchGlobalConfiguration.get().getElasticSearch();
-
-    if (config == null)
-    {
-      return;
-    }
 
     try
     {
-      ElasticSearchRunConfiguration config2 = config.getRunConfiguration(run);
+      ElasticSearchRunConfiguration config = ElasticSearchGlobalConfiguration.getRunConfiguration(run);
 
-      ElasticSearchWriter writer = ElasticSearchWriter.createElasticSearchWriter(config2);
-      Map<String, Object> data = config2.createData();
+      if (config == null)
+      {
+        return;
+      }
+
+      ElasticSearchWriter writer = ElasticSearchWriter.createElasticSearchWriter(config);
+      Map<String, Object> data = config.createData();
 
       data.put("eventType", "buildStart");
       writer.push(JSONObject.fromObject(data).toString());
