@@ -91,8 +91,6 @@ public class ElasticSearchSender implements BuildListener, Closeable
     Date date = new Date();
     data.put("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(UTC_MILLIS));
     data.put("timestampMillis", date.getTime());
-    data.put("project", fullName);
-    data.put("build", buildId);
     data.put("runId", runId);
     return data;
   }
