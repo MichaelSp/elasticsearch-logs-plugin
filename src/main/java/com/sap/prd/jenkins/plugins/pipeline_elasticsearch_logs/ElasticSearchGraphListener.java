@@ -24,6 +24,30 @@ import net.sf.json.JSONObject;
 
 public class ElasticSearchGraphListener implements GraphListener.Synchronous
 {
+  private static final String FLOW_GRAPH_ATOM_NODE_END = "flowGraph::atomNodeEnd";
+
+  private static final String FLOW_GRAPH_NODE_END = "flowGraph::nodeEnd";
+
+  private static final String FLOW_GRAPH_NODE_START = "flowGraph::nodeStart";
+
+  private static final String FLOW_GRAPH_FLOW_END = "flowGraph::flowEnd";
+
+  private static final String FLOW_GRAPH_FLOW_START = "flowGraph::flowStart";
+
+  private static final String FLOW_GRAPH_ATOM_NODE_START = "flowGraph::atomNodeStart";
+
+  private static final String PREDECESSORS = "predecessors";
+
+  private static final String ERROR_MESSAGE = "errorMessage";
+
+  private static final String START_ID = "startId";
+
+  private static final String DURATION = "duration";
+
+  private static final String RESULT = "result";
+
+  static final String EVENT_TYPE = "eventType";
+
   private static final Logger LOGGER = Logger.getLogger(ElasticSearchGraphListener.class.getName());
 
   private final ElasticSearchWriter writer;
@@ -72,23 +96,23 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
   {
     if (node instanceof AtomNode)
     {
-      return "flowGraph::atomNodeStart";
+      return FLOW_GRAPH_ATOM_NODE_START;
     }
     if (node instanceof FlowStartNode)
     {
-      return "flowGraph::flowStart";
+      return FLOW_GRAPH_FLOW_START;
     }
     if (node instanceof FlowEndNode)
     {
-      return "flowGraph::flowEnd";
+      return FLOW_GRAPH_FLOW_END;
     }
     if (node instanceof BlockStartNode)
     {
-      return "flowGraph::nodeStart";
+      return FLOW_GRAPH_NODE_START;
     }
     if (node instanceof BlockEndNode)
     {
-      return "flowGraph::nodeEnd";
+      return FLOW_GRAPH_NODE_END;
     }
     
     return "unknown";
@@ -97,13 +121,13 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
   private void sendAtomNodeEnd(FlowNode node, FlowNode successor) throws IOException
   {
     Map<String, Object> data = createData(node);
-    data.put("eventType", "flowGraph::atomNodeEnd");
-    data.put("result", getStatus(node));
-    data.put("duration", getDuration(node, successor));
+    data.put(EVENT_TYPE, FLOW_GRAPH_ATOM_NODE_END);
+    data.put(RESULT, getStatus(node));
+    data.put(DURATION, getDuration(node, successor));
     String errorMessage = getErrorMessage(node);
     if (errorMessage != null)
     {
-      data.put("errorMessage", errorMessage);
+      data.put(ERROR_MESSAGE, errorMessage);
     }
 
     writer.push(JSONObject.fromObject(data).toString());
@@ -112,17 +136,17 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
   private void sendNodeEnd(BlockEndNode<?> node) throws IOException
   {
     Map<String, Object> data = createData(node);
-    data.put("eventType", getEventType(node));
+    data.put(EVENT_TYPE, getEventType(node));
     FlowNode startNode = node.getStartNode();
-    data.put("startId", startNode.getId());
+    data.put(START_ID, startNode.getId());
 
-    data.put("result", getStatus(node));
-    data.put("duration", getDuration(startNode, node));
+    data.put(RESULT, getStatus(node));
+    data.put(DURATION, getDuration(startNode, node));
 
     String errorMessage = getErrorMessage(node);
     if (errorMessage != null)
     {
-      data.put("errorMessage", errorMessage);
+      data.put(ERROR_MESSAGE, errorMessage);
     }
 
     writer.push(JSONObject.fromObject(data).toString());
@@ -132,7 +156,7 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
   {
     Map<String, Object> data = createData(node);
 
-    data.put("eventType", getEventType(node));
+    data.put(EVENT_TYPE, getEventType(node));
     writer.push(JSONObject.fromObject(data).toString());
   }
   
@@ -152,7 +176,7 @@ public class ElasticSearchGraphListener implements GraphListener.Synchronous
       {
         p.add(parent.getId());
       }
-      data.put("predecessors", p);
+      data.put(PREDECESSORS, p);
     }
     NodeInfo nodeInfo = new NodeInfo(node);
     nodeInfo.appendNodeInfo(data);

@@ -17,6 +17,10 @@ import net.sf.json.JSONObject;
 
 public class ElasticSearchSender implements BuildListener, Closeable
 {
+  private static final String EVENT_PREFIX_BUILD = "build";
+
+  private static final String EVENT_PREFIX_NODE = "node";
+
   private static final Logger LOGGER = Logger.getLogger(ElasticSearchSender.class.getName());
 
   private static final long serialVersionUID = 1;
@@ -34,11 +38,11 @@ public class ElasticSearchSender implements BuildListener, Closeable
     this.config = config;
     if (nodeInfo != null)
     {
-      eventPrefix = "node";
+      eventPrefix = EVENT_PREFIX_NODE;
     }
     else
     {
-      eventPrefix = "build";
+      eventPrefix = EVENT_PREFIX_BUILD;
     }
   }
   
@@ -77,13 +81,15 @@ public class ElasticSearchSender implements BuildListener, Closeable
 
   private class ElasticSearchOutputStream extends LineTransformationOutputStream
   {
+    private static final String EVENT_TYPE_MESSAGE = "Message";
+
     @Override
     protected void eol(byte[] b, int len) throws IOException
     {
       Map<String, Object> data = config.createData();
 
       ConsoleNotes.parse(b, len, data, config.isSaveAnnotations());
-      data.put("eventType", eventPrefix + "Message");
+      data.put(ElasticSearchGraphListener.EVENT_TYPE, eventPrefix + EVENT_TYPE_MESSAGE);
       if (nodeInfo != null)
       {
         nodeInfo.appendNodeInfo(data);

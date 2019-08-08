@@ -30,6 +30,14 @@ import net.sf.json.JSONObject;
 @Restricted(NoExternalUse.class)
 public class ElasticSearchRunConfiguration implements Serializable
 {
+  private static final String UID = "uid";
+
+  private static final String RUN_ID = "runId";
+
+  private static final String TIMESTAMP_MILLIS = "timestampMillis";
+
+  private static final String TIMESTAMP = "timestamp";
+
   private static final Logger LOGGER = Logger.getLogger(ElasticSearchRunConfiguration.class.getName());
 
   private static final DateTimeFormatter UTC_MILLIS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
@@ -113,10 +121,10 @@ public class ElasticSearchRunConfiguration implements Serializable
   {
     Map<String, Object> data = new LinkedHashMap<>();
     Date date = new Date();
-    data.put("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(UTC_MILLIS));
-    data.put("timestampMillis", date.getTime());
-    data.put("runId", JSONObject.fromObject(runIdJsonString));
-    data.put("uid", uid);
+    data.put(TIMESTAMP, ZonedDateTime.now(ZoneOffset.UTC).format(UTC_MILLIS));
+    data.put(TIMESTAMP_MILLIS, date.getTime());
+    data.put(RUN_ID, JSONObject.fromObject(runIdJsonString));
+    data.put(UID, uid);
     return data;
   }
 
