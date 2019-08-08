@@ -74,10 +74,6 @@ public class ElasticSearchConfiguration extends AbstractDescribableImpl<ElasticS
   
   public RunIdProvider getRunIdProvider()
   {
-    if (runIdProvider == null)
-    {
-      runIdProvider = new DefaultRunIdProvider("");
-    }
     return runIdProvider;
   }
 
