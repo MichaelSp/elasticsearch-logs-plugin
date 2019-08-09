@@ -1,18 +1,8 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
          
-
-  <script>
-    // Workaround for validation, see https://issues.jenkins-ci.org/browse/JENKINS-15604
-    function cmChange(editor, change) {
-      editor.save();
-      $$('.validated').forEach(function (e) {e.onchange()})
-    }
-  </script>
-
   <f:entry>
-    <f:textarea field="jsonString" checkMethod="post" codemirror-mode="javascript" 
-    codemirror-config="mode: 'application/json', lineNumbers: true, matchBrackets: true, 'onChange': cmChange"/>
+    <f:textarea field="jsonString"/>
   </f:entry>
 
 </j:jelly>
