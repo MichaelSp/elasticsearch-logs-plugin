@@ -7,7 +7,7 @@
         <version>3.42</version>
         <relativePath />
     </parent>
-    <groupId>com.sap.prd.jenkins.plugins</groupId>
+    <groupId>io.jenkins.plugins</groupId>
     <artifactId>pipeline-elasticsearch-logs</artifactId>
     <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
@@ -17,7 +17,7 @@
         <jenkins.version>2.164.3</jenkins.version>
         <java.level>8</java.level>
         <useBeta>true</useBeta>
-        <workflow-api-plugin.version>2.34</workflow-api-plugin.version> <!-- TODO https://github.com/jenkinsci/workflow-api-plugin/pull/88 -->
+        <workflow-api-plugin.version>2.34</workflow-api-plugin.version> 
     </properties>
     <name>Pipeline Logging via Elastic Search</name>
     <repositories>
@@ -152,7 +152,7 @@
                 <artifactId>maven-hpi-plugin</artifactId>
                 <configuration>
                     <loggers>
-                        <com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs>FINE</com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs>
+                        <io.jenkins.plugins.pipeline_elasticsearch_logs>FINE</io.jenkins.plugins.pipeline_elasticsearch_logs>
                     </loggers>
                 </configuration>
             </plugin>
