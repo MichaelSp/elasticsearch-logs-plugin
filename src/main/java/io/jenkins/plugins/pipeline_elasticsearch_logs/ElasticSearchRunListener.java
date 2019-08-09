@@ -1,4 +1,4 @@
-package com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs;
+package io.jenkins.plugins.pipeline_elasticsearch_logs;
 
 import java.io.IOException;
 import java.util.Map;
