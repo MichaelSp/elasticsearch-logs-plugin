@@ -2,21 +2,16 @@ package io.jenkins.plugins.pipeline_elasticsearch_logs;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jenkinsci.plugins.uniqueid.IdStore;
 import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner;
 import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner.Executable;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
-import org.jenkinsci.plugins.workflow.graph.StepNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.log.BrokenLogStorage;
 import org.jenkinsci.plugins.workflow.log.LogStorage;
 import org.jenkinsci.plugins.workflow.log.LogStorageFactory;
-import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.kohsuke.stapler.framework.io.ByteBuffer;
 
 import hudson.Extension;
@@ -32,39 +27,23 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
 
   private final static Logger LOGGER = Logger.getLogger(ElasticSearchLogStorageFactory.class.getName());
 
-  private transient Map<String, NodeGraphStatus> nodeGraphs = new HashMap<>();
-
   @Override
   public LogStorage forBuild(FlowExecutionOwner owner)
   {
-    ElasticSearchConfiguration config = ElasticSearchGlobalConfiguration.get().getElasticSearch();
-    if (config == null)
-    {
-      return null;
-    }
 
     try
     {
       Queue.Executable exec = owner.getExecutable();
       if (exec instanceof WorkflowRun)
       {
-        WorkflowRun run = (WorkflowRun) exec;
-        NodeGraphStatus nodeGraphStatus = null;
-        if (run.isBuilding())
+        ElasticSearchRunConfiguration config = ElasticSearchGlobalConfiguration.getRunConfiguration((WorkflowRun) exec);
+        if (config == null)
         {
-          String runId  = ElasticSearchConfiguration.getUniqueRunId(run);
-          LOGGER.log(Level.FINE, "Getting NodeGraphStatus for RunID: {0}", runId);
-          nodeGraphStatus = nodeGraphs.get(runId);
-          if (nodeGraphStatus == null)
-          {
-            LOGGER.log(Level.FINE, "Creating NodeGraphStatus for RunID: {0}", runId);
-            nodeGraphStatus = new NodeGraphStatus(run);
-            nodeGraphs.put(runId, nodeGraphStatus);
-          }
+          return null;
         }
-
-        LOGGER.log(Level.INFO, "Getting LogStorage for: {0}", run.getFullDisplayName());
-        return new ElasticSearchLogStorage(config.getRunConfiguration(run), run, nodeGraphStatus);        
+        WorkflowRun run = (WorkflowRun) exec;
+        LOGGER.log(Level.FINER, "Getting LogStorage for: {0}", run.getFullDisplayName());
+        return new ElasticSearchLogStorage(config);
       }
       else
       {
@@ -77,27 +56,6 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     }
   }
   
-  public void removeNodeGraphStatus(WorkflowRun run)
-  {
-    String runId  = IdStore.getId(run);
-    LOGGER.log(Level.FINE, "Removing NodeGraphStatus for RunID: {0}", runId);
-    nodeGraphs.remove(runId);
-  }
-
-  static String getStepName(FlowNode node)
-  {
-    String stepName = null;
-    if (node instanceof StepNode)
-    {
-      StepDescriptor descriptor = ((StepNode) node).getDescriptor();
-      if (descriptor != null)
-      {
-        stepName = descriptor.getFunctionName();
-      }
-    }
-    return stepName;
-  }
-
   static ElasticSearchLogStorageFactory get()
   {
     return ExtensionList.lookupSingleton(ElasticSearchLogStorageFactory.class);
@@ -106,20 +64,16 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
   private static class ElasticSearchLogStorage implements LogStorage
   {
     private ElasticSearchRunConfiguration config;
-    private WorkflowRun run;
-    private final NodeGraphStatus nodeGraphStatus;
     
-    ElasticSearchLogStorage(ElasticSearchRunConfiguration config, WorkflowRun run, NodeGraphStatus nodeGraphStatus)
+    ElasticSearchLogStorage(ElasticSearchRunConfiguration config)
     {
       this.config = config;
-      this.run = run;
-      this.nodeGraphStatus = nodeGraphStatus;
     }
     
     @Override
     public BuildListener overallListener() throws IOException, InterruptedException
     {
-      ElasticSearchSender sender = new ElasticSearchSender(null, config, run, nodeGraphStatus);
+      ElasticSearchSender sender = new ElasticSearchSender(null, config);
       return sender;
     }
 
@@ -127,7 +81,7 @@ public class ElasticSearchLogStorageFactory implements LogStorageFactory
     public TaskListener nodeListener(FlowNode node) throws IOException, InterruptedException
     {
       NodeInfo nodeInfo = new NodeInfo(node);
-      return new ElasticSearchSender(nodeInfo, config, null, nodeGraphStatus);
+      return new ElasticSearchSender(nodeInfo, config);
     }
 
     @Override

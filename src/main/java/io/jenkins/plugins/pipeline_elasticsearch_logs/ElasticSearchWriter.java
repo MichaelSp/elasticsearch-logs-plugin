@@ -68,6 +68,16 @@ public class ElasticSearchWriter
     this.username = username;
   }
 
+  public static ElasticSearchWriter createElasticSearchWriter(ElasticSearchRunConfiguration config) throws IOException
+  {
+    ElasticSearchWriter writer = new ElasticSearchWriter(config.getUri(), config.getUsername(), config.getPassword());
+    if (config.getTrustKeyStore() != null)
+    {
+      writer.setTrustKeyStore(config.getTrustKeyStore());
+    }
+    return writer;
+  }
+
   public void setTrustKeyStore(KeyStore trustKeyStore)
   {
     this.trustKeyStore = trustKeyStore;

@@ -3,6 +3,8 @@ package io.jenkins.plugins.pipeline_elasticsearch_logs;
 import java.io.Serializable;
 import java.util.Map;
 
+import javax.annotation.CheckForNull;
+
 import org.jenkinsci.plugins.workflow.actions.LabelAction;
 import org.jenkinsci.plugins.workflow.actions.ThreadNameAction;
 import org.jenkinsci.plugins.workflow.actions.WorkspaceAction;
@@ -40,7 +42,7 @@ public class NodeInfo implements Serializable
     String stageId = null;
     String parallelBranchName = null;
     String parallelBranchId = null;
-    
+
     if (stage != null)
     {
       stageId = stage.getId();
@@ -61,7 +63,7 @@ public class NodeInfo implements Serializable
       }
     }
 
-    this.stepName = ElasticSearchLogStorageFactory.getStepName(node);
+    this.stepName = getStepName(node);
     this.agentName = getAgentName(node);
     this.nodeId = node.getId();
     this.stageName = stageName;
@@ -112,32 +114,46 @@ public class NodeInfo implements Serializable
   }
 
   /**
-   * Returns the FlowNode of a stage step that encloses the given FlowNode.
+   * Returns the FlowNode of a stage step that encloses the given FlowNode or the current FlowNode if it is a stage.
    * 
    * @param node
    *          The FlowNode to check.
    * @return The BlockStartNode representing the start of the stage step or null if not inside a
    *         stage.
    */
-  private FlowNode getStage(FlowNode node)
+  private @CheckForNull FlowNode getStage(FlowNode node)
   {
+    if (isStageNode(node))
+    {
+      return node;
+    }
+    
     for (BlockStartNode bsn : node.iterateEnclosingBlocks())
     {
-      if (bsn instanceof StepNode)
+      if (isStageNode(bsn))
       {
-        StepDescriptor descriptor = ((StepNode) bsn).getDescriptor();
+        return bsn;
+      }
+    }
+    return null;
+  }
+
+  private boolean isStageNode(FlowNode node)
+  {
+      if (node instanceof StepNode)
+      {
+        StepDescriptor descriptor = ((StepNode) node).getDescriptor();
         if (descriptor instanceof StageStep.DescriptorImpl)
         {
-          LabelAction labelAction = bsn.getAction(LabelAction.class);
+          LabelAction labelAction = node.getAction(LabelAction.class);
           if (labelAction != null)
           {
-            return bsn;
+            return true;
           }
         }
       }
-    }
 
-    return null;
+    return false;
   }
 
   /**
@@ -148,27 +164,42 @@ public class NodeInfo implements Serializable
    * @return The BlockStartNode representing the start of the parallel branch step or null if not
    *         inside a parallel branch.
    */
-  private FlowNode getParallelBranch(FlowNode node)
+  private @CheckForNull FlowNode getParallelBranch(FlowNode node)
   {
+    
+    if (isParallelBranchNode(node))
+    {
+      return node;
+    }
     for (BlockStartNode bsn : node.iterateEnclosingBlocks())
     {
-      if (bsn instanceof StepNode)
+      if (isParallelBranchNode(node))
       {
-        StepDescriptor descriptor = ((StepNode) bsn).getDescriptor();
-        if (descriptor instanceof ParallelStep.DescriptorImpl)
-        {
-          ThreadNameAction threadNameAction = bsn.getAction(ThreadNameAction.class);
-          if (threadNameAction != null)
-          {
-            return bsn;
-          }
-        }
+        return bsn;
       }
     }
 
     return null;
   }
 
+  private boolean isParallelBranchNode(FlowNode node)
+  {
+    if (node instanceof StepNode)
+    {
+      StepDescriptor descriptor = ((StepNode) node).getDescriptor();
+      if (descriptor instanceof ParallelStep.DescriptorImpl)
+      {
+        ThreadNameAction threadNameAction = node.getAction(ThreadNameAction.class);
+        if (threadNameAction != null)
+        {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+  
   /**
    * Returns the name of the agent this FlowNode is running on.
    * 
@@ -195,6 +226,20 @@ public class NodeInfo implements Serializable
     }
 
     return null;
+  }
+
+  private String getStepName(FlowNode node)
+  {
+    String stepName = null;
+    if (node instanceof StepNode)
+    {
+      StepDescriptor descriptor = ((StepNode) node).getDescriptor();
+      if (descriptor != null)
+      {
+        stepName = descriptor.getFunctionName();
+      }
+    }
+    return stepName;
   }
 
   @Override
