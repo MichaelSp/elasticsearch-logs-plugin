@@ -7,7 +7,7 @@
         <version>3.42</version>
         <relativePath />
     </parent>
-    <groupId>com.sap.prd.jenkins.plugins</groupId>
+    <groupId>io.jenkins.plugins</groupId>
     <artifactId>pipeline-elasticsearch-logs</artifactId>
     <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
@@ -151,7 +151,7 @@
                 <artifactId>maven-hpi-plugin</artifactId>
                 <configuration>
                     <loggers>
-                        <com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs>FINE</com.sap.prd.jenkins.plugins.pipeline_elasticsearch_logs>
+                        <io.jenkins.plugins.pipeline_elasticsearch_logs>FINE</io.jenkins.plugins.pipeline_elasticsearch_logs>
                     </loggers>
                 </configuration>
             </plugin>
