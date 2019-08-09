@@ -2,6 +2,9 @@
  * The MIT License
  *
  * Copyright 2018 CloudBees, Inc.
+ * Copyright 2019 SAP SE
+ * 
+ * Source: https://github.com/jenkinsci/pipeline-cloudwatch-logs-plugin/blob/66f4d48a5560e518646d04739c3d2f7224e9dc93/src/main/java/io/jenkins/plugins/pipeline_cloudwatch_logs/ConsoleNotes.java
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
