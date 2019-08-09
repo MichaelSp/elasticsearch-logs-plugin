@@ -30,18 +30,15 @@ The initial scope of this plugin was to use it it in a [JenkinsFileRunner](https
 
 ### Known Issues
 
-see Jenkins Jira
+tbd.
 
 ### How to obtain support
 
-tbd.: 
- - Link to Jira component once the plugin is officially hosted in the [JenkinsCI](https://github.com/jenkinsci) org.
- - Link to Plugin wiki on Jenkins site where once can ask questions and see open issues
-
+open an issue in [Github](https://github.com/sap/pipeline-elasticsearch-logs-plugin/issues)
 
 ### Contributing
 
-Please open a Pull Request in our [Github](https://github.com/jenkinsci/pipeline-elasticsearch-logs-plugin) repository.
+Please open a Pull Request in our [Github](https://github.com/sap/pipeline-elasticsearch-logs-plugin) repository.
 
 ### To-Do (upcoming changes)
 
@@ -50,12 +47,10 @@ Please open a Pull Request in our [Github](https://github.com/jenkinsci/pipeline
   - disabled will store the annotations next to events
 - Implement a reader from Elastic Search
 - Improve http connection handling
-- Implement a GraphListener to send start and end events instead of using the 
+- Implement a GraphListener to send start and end events
 
 ### License
 
-The following text should appear in the license section.  
-
 Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved.
-This file is licensed under the "Apache Software License, v. 2" except as noted otherwise in the LICENSE file .�
+This file is licensed under the "Apache Software License, v. 2" except as noted otherwise in the LICENSE file.
 
