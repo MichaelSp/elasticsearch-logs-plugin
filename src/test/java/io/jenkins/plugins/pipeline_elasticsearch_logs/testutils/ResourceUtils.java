@@ -98,10 +98,9 @@ public class ResourceUtils
    */
   private static String readResource(String filePath) throws IOException {
     ClassLoader classLoader = ResourceUtils.class.getClassLoader();
-    URL resource = classLoader.getResource(filePath);
-    if(resource == null) throw new IOException("Could not find resource: " + filePath);
-    File file = new File(resource.getFile());
-    return FileUtils.readFileToString(file, "UTF-8");
+    InputStream in = classLoader.getResourceAsStream(filePath);
+    if (in == null) throw new IOException("Could not find resource: " + filePath);
+    return IOUtils.toString(in, StandardCharsets.UTF_8);
   }
 
 }
